@@ -2773,10 +2773,10 @@ const MPEngine = (() => {
     });
 
     hands.setOptions({
-      maxNumHands:              2,     // Nhận cả 2 tay
-      modelComplexity:          1,     // 1 = chính xác nhất
-      minDetectionConfidence:   0.75,  // v5: tăng từ 0.7 lên 0.75
-      minTrackingConfidence:    0.65,  // v5: tăng từ 0.6 lên 0.65
+      maxNumHands:              1,     // ⚡ Chỉ nhận 1 tay → nhẹ hơn nhiều
+      modelComplexity:          0,     // ⚡ 0 = nhanh hơn (thay vì 1)
+      minDetectionConfidence:   0.6,   // ⚡ Giảm ngưỡng → xử lý nhanh hơn
+      minTrackingConfidence:    0.5,   // ⚡ Giảm ngưỡng → xử lý nhanh hơn
     });
 
     hands.onResults(onResults);
@@ -2790,9 +2790,9 @@ const MPEngine = (() => {
       const constraints = {
         video: {
           facingMode: { ideal: 'user' },  // camera trước
-          width:     { ideal: 640, min: 320 },
-          height:    { ideal: 480, min: 240 },
-          frameRate: { ideal: 30, min: 15 }
+          width:     { ideal: 320, min: 240 },   // ⚡ Giảm từ 640→320
+          height:    { ideal: 240, min: 180 },   // ⚡ Giảm từ 480→240
+          frameRate: { ideal: 15, min: 10 }      // ⚡ Giảm từ 30→15 FPS
         },
         audio: false
       };
@@ -2810,8 +2810,8 @@ const MPEngine = (() => {
       videoEl.srcObject = stream;
       await videoEl.play();
 
-      canvas.width  = videoEl.videoWidth  || 640;
-      canvas.height = videoEl.videoHeight || 480;
+      canvas.width  = videoEl.videoWidth  || 320;
+      canvas.height = videoEl.videoHeight || 240;
 
       // Xác nhận đang dùng camera trước
       const track = stream.getVideoTracks()[0];
@@ -2826,8 +2826,8 @@ const MPEngine = (() => {
           await hands.send({ image: videoEl });
           calcFps();
         },
-        width:  640,
-        height: 480,
+        width:  320,   // ⚡ Giảm từ 640→320
+        height: 240,   // ⚡ Giảm từ 480→240
       });
       await camera.start();
 
