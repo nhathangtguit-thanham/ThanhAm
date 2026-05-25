@@ -5,14 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ThanhAm AI – Bảng Chữ Cái Thủ Ngữ Tiếng Việt</title>
 
-  <!-- ── TensorFlow.js – load từ CDN (cần mạng lần đầu, sau đó cached) ── -->
+  <!-- ── TensorFlow.js ── -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
 
-  <!-- ── MediaPipe Hands ── -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+  <!-- ── MediaPipe Tasks Vision (mới, nhanh hơn 2-3x so với @mediapipe/hands) ── -->
+  <script type="module">
+    import {
+      HandLandmarker,
+      FilesetResolver,
+      DrawingUtils
+    } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+    window._MP_HandLandmarker  = HandLandmarker;
+    window._MP_FilesetResolver = FilesetResolver;
+    window._MP_DrawingUtils    = DrawingUtils;
+    window._MP_TASKS_READY     = true;
+    window.dispatchEvent(new Event('mp-tasks-ready'));
+  </script>
 
   <style>
 /* =============================================
@@ -2747,115 +2755,205 @@ Speech._patchV5 = function() {
  * ─────────────────────────────────────────────────────────────
  */
 
+// ══════════════════════════════════════════════════════════════
+// MPEngine v6 — dùng MediaPipe Tasks Vision (nhanh hơn 2-3x)
+//   • HandLandmarker chạy WASM tối ưu, không qua Camera utility
+//   • requestAnimationFrame loop thay vì Camera wrapper
+//   • Tự phát hiện mobile → điều chỉnh tham số tự động
+// ══════════════════════════════════════════════════════════════
 const MPEngine = (() => {
-  let hands      = null;
-  let camera     = null;
-  let stream     = null;
-  let running    = false;
-  let detecting  = false;
-  let frameCount = 0;
-  let lastFpsTime = Date.now();
-  let fps        = 0;
-
-  // ⚡ Frame skip: chỉ xử lý 1 trong N frame (tiết kiệm CPU)
-  let _frameSkipCounter = 0;
   const IS_MOBILE = /Android|iPhone|iPad/i.test(navigator.userAgent);
-  const FRAME_SKIP = IS_MOBILE ? 2 : 1; // Mobile: bỏ qua 2 frame, xử lý frame thứ 3
 
-  // Temporal smoothing buffer
-  const SMOOTH_FRAMES = IS_MOBILE ? 2 : 3; // Mobile: smooth ít hơn = nhanh hơn
-  let landmarkHistory = [];  // circular buffer của landmarks
+  let handLandmarker = null;
+  let drawingUtils   = null;
+  let stream         = null;
+  let rafId          = null;       // requestAnimationFrame id
+  let running        = false;
+  let detecting      = false;
+  let lastVideoTime  = -1;
 
-  const videoEl  = document.getElementById('inputVideo');
-  const canvas   = document.getElementById('outputCanvas');
-  const ctx      = canvas.getContext('2d');
+  // FPS
+  let frameCount  = 0;
+  let lastFpsTime = Date.now();
+  let fps         = 0;
 
-  // ── Khởi tạo MediaPipe Hands ──────────────────────────────
-  async function initHands() {
-    hands = new Hands({
-      locateFile: (file) =>
-        `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+  // Smoothing
+  const SMOOTH_FRAMES = IS_MOBILE ? 2 : 3;
+  let landmarkHistory = [];
+
+  const videoEl = document.getElementById('inputVideo');
+  const canvas  = document.getElementById('outputCanvas');
+  const ctx     = canvas.getContext('2d');
+
+  // ── Màu skeleton ──────────────────────────────────────────
+  const LINE_COLOR = '#00D4FF';
+  const DOT_COLOR  = '#FF3D71';
+
+  // ── Chờ MediaPipe Tasks module load xong ─────────────────
+  function waitForMPTasks() {
+    return new Promise(resolve => {
+      if (window._MP_TASKS_READY) return resolve();
+      window.addEventListener('mp-tasks-ready', resolve, { once: true });
     });
-
-    hands.setOptions({
-      maxNumHands:              1,     // ⚡ Chỉ nhận 1 tay → nhẹ hơn nhiều
-      modelComplexity:          0,     // ⚡ 0 = nhanh hơn (thay vì 1)
-      minDetectionConfidence:   0.6,   // ⚡ Giảm ngưỡng → xử lý nhanh hơn
-      minTrackingConfidence:    0.5,   // ⚡ Giảm ngưỡng → xử lý nhanh hơn
-    });
-
-    hands.onResults(onResults);
-    console.log('[MPEngine v5] MediaPipe Hands đã khởi tạo (camera trước)');
   }
 
-  // ── Bật camera TRƯỚC ──────────────────────────────────────
+  // ── Khởi tạo HandLandmarker ───────────────────────────────
+  async function initLandmarker() {
+    await waitForMPTasks();
+
+    const vision = await window._MP_FilesetResolver.forVisionTasks(
+      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
+    );
+
+    handLandmarker = await window._MP_HandLandmarker.createFromOptions(vision, {
+      baseOptions: {
+        // Lite model = nhỏ hơn, nhanh hơn, tải 1 lần rồi cache
+        modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
+        delegate: IS_MOBILE ? 'GPU' : 'GPU',   // GPU trên cả mobile & desktop
+      },
+      runningMode:            'VIDEO',   // VIDEO mode: tái dùng tracking liên tục
+      numHands:               1,         // chỉ 1 tay → nhanh hơn
+      minHandDetectionConfidence: 0.5,
+      minHandPresenceConfidence:  0.5,
+      minTrackingConfidence:      0.5,
+    });
+
+    drawingUtils = new window._MP_DrawingUtils(ctx);
+    console.log('[MPEngine v6] HandLandmarker đã sẵn sàng (Tasks Vision, GPU)');
+  }
+
+  // ── Bật camera ────────────────────────────────────────────
   async function startCamera() {
     try {
-      // Ưu tiên camera trước (selfie), fallback về 'user'
-      const constraints = {
-        video: {
-          facingMode: { ideal: 'user' },  // camera trước
-          width:     { ideal: IS_MOBILE ? 256 : 320, min: 180 },  // ⚡ Mobile: 256px
-          height:    { ideal: IS_MOBILE ? 192 : 240, min: 144 },  // ⚡ Mobile: 192px
-          frameRate: { ideal: IS_MOBILE ? 12 : 15, min: 8 }       // ⚡ Mobile: 12 FPS
-        },
-        audio: false
-      };
+      const W = IS_MOBILE ? 320 : 640;
+      const H = IS_MOBILE ? 240 : 480;
 
-      try {
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
-      } catch (e) {
-        // Fallback: thử không ràng buộc facingMode
-        console.warn('[MPEngine] Thử fallback camera constraints:', e.message);
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user' }, audio: false
-        });
-      }
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: 'user',
+          width:  { ideal: W },
+          height: { ideal: H },
+          frameRate: { ideal: IS_MOBILE ? 20 : 30 },
+        },
+        audio: false,
+      }).catch(() =>
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+      );
 
       videoEl.srcObject = stream;
       await videoEl.play();
 
-      canvas.width  = videoEl.videoWidth  || (IS_MOBILE ? 256 : 320);
-      canvas.height = videoEl.videoHeight || (IS_MOBILE ? 192 : 240);
+      canvas.width  = videoEl.videoWidth  || W;
+      canvas.height = videoEl.videoHeight || H;
 
-      // Xác nhận đang dùng camera trước
-      const track = stream.getVideoTracks()[0];
-      const settings = track ? track.getSettings() : {};
-      console.log('[MPEngine] Camera:', settings.facingMode || 'unknown',
-                  `${settings.width}x${settings.height}`);
-
-      await initHands();
-
-      camera = new Camera(videoEl, {
-        onFrame: async () => {
-          // ⚡ Frame skip: mobile chỉ xử lý 1/3 frame
-          _frameSkipCounter++;
-          if (_frameSkipCounter < FRAME_SKIP) return;
-          _frameSkipCounter = 0;
-          await hands.send({ image: videoEl });
-          calcFps();
-        },
-        width:  IS_MOBILE ? 256 : 320,   // ⚡ Mobile: 256px
-        height: IS_MOBILE ? 192 : 240,   // ⚡ Mobile: 192px
-      });
-      await camera.start();
+      // Khởi tạo model (song song với camera warm-up)
+      await initLandmarker();
 
       running = true;
       landmarkHistory = [];
-      console.log('[MPEngine v5] Camera trước đang chạy');
+      rafId = requestAnimationFrame(processFrame);
+      console.log('[MPEngine v6] Đang chạy —',
+        `${canvas.width}x${canvas.height}`, IS_MOBILE ? '📱 mobile' : '💻 desktop');
       return true;
     } catch (err) {
-      console.error('[MPEngine] Lỗi camera:', err);
+      console.error('[MPEngine v6] Lỗi khởi động:', err);
       throw err;
     }
   }
 
+  // ── Vòng lặp xử lý frame (requestAnimationFrame) ─────────
+  function processFrame() {
+    if (!running) return;
+
+    rafId = requestAnimationFrame(processFrame);
+
+    // Bỏ qua nếu frame chưa mới
+    if (videoEl.readyState < 2) return;
+    if (videoEl.currentTime === lastVideoTime) return;
+    lastVideoTime = videoEl.currentTime;
+
+    // ── Chạy HandLandmarker (đồng bộ, rất nhanh với WASM+GPU) ──
+    const result = handLandmarker.detectForVideo(videoEl, performance.now());
+
+    // ── Vẽ khung hình ──────────────────────────────────────
+    ctx.save();
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+    const landmarks   = result.landmarks   || [];
+    const handedness  = result.handednesses || [];
+
+    // Badge số tay
+    const handBadge = document.getElementById('handCountBadge');
+    if (handBadge) {
+      if (landmarks.length > 0) {
+        handBadge.style.display = 'block';
+        handBadge.textContent   = '✋ 1 tay';
+        handBadge.style.background  = 'rgba(0,212,255,0.2)';
+        handBadge.style.borderColor = 'rgba(0,212,255,0.5)';
+        handBadge.style.color       = '#00D4FF';
+      } else {
+        handBadge.style.display = 'none';
+      }
+    }
+
+    if (landmarks.length > 0) {
+      landmarks.forEach((lm, i) => {
+        // Vẽ connections
+        drawingUtils.drawConnectors(
+          lm,
+          window._MP_HandLandmarker.HAND_CONNECTIONS,
+          { color: LINE_COLOR, lineWidth: IS_MOBILE ? 1.5 : 2.5 }
+        );
+        // Vẽ điểm khớp
+        drawingUtils.drawLandmarks(lm, {
+          color: DOT_COLOR,
+          fillColor: DOT_COLOR,
+          lineWidth: 1,
+          radius: IS_MOBILE ? 2 : 4,
+        });
+
+        // Nhãn tay
+        const side = handedness[i]?.[0]?.displayName || 'Tay';
+        const wrist = lm[0];
+        ctx.font      = 'bold 13px sans-serif';
+        ctx.fillStyle = LINE_COLOR;
+        ctx.fillText(
+          side === 'Left' ? '✋ Trái' : '🤚 Phải',
+          wrist.x * canvas.width - 30,
+          wrist.y * canvas.height - 15
+        );
+      });
+
+      // ── Nhận dạng cử chỉ ─────────────────────────────────
+      if (detecting && typeof App !== 'undefined' && typeof classifyGesture !== 'undefined') {
+        // Chuyển format Tasks → format cũ {x,y,z}[]
+        const lmFormatted = smoothLandmarks(
+          landmarks[0].map(p => ({ x: p.x, y: p.y, z: p.z }))
+        );
+        const result2 = classifyGesture(lmFormatted);
+        if (result2) {
+          result2.handIndex = 0;
+          result2.handLabel = handedness[0]?.[0]?.displayName || 'Unknown';
+          App.onGestureDetected(result2);
+        }
+      }
+    } else {
+      if (detecting && typeof App !== 'undefined') {
+        App.onNoHand();
+      }
+    }
+
+    ctx.restore();
+    calcFps();
+  }
+
   // ── Tắt camera ────────────────────────────────────────────
   function stopCamera() {
-    if (camera) { camera.stop(); camera = null; }
+    running = false;
+    if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
-    if (hands)  { hands.close(); hands = null; }
-    running   = false;
+    if (handLandmarker) { handLandmarker.close(); handLandmarker = null; }
     detecting = false;
     landmarkHistory = [];
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2866,157 +2964,31 @@ const MPEngine = (() => {
     if (!val) landmarkHistory = [];
   }
 
-  // ── Smoothing: trung bình hóa landmarks qua nhiều frame ───
-  function smoothLandmarks(newLandmarks) {
-    landmarkHistory.push(newLandmarks);
-    if (landmarkHistory.length > SMOOTH_FRAMES) {
-      landmarkHistory.shift();
-    }
-    if (landmarkHistory.length < 2) return newLandmarks;
-
-    // Tính trung bình
-    const smoothed = newLandmarks.map((lm, i) => {
+  // ── Smoothing landmarks ───────────────────────────────────
+  function smoothLandmarks(newLm) {
+    landmarkHistory.push(newLm);
+    if (landmarkHistory.length > SMOOTH_FRAMES) landmarkHistory.shift();
+    if (landmarkHistory.length < 2) return newLm;
+    return newLm.map((lm, i) => {
       let sx = 0, sy = 0, sz = 0;
-      for (const frame of landmarkHistory) {
-        sx += frame[i].x;
-        sy += frame[i].y;
-        sz += (frame[i].z || 0);
-      }
+      for (const f of landmarkHistory) { sx += f[i].x; sy += f[i].y; sz += (f[i].z||0); }
       const n = landmarkHistory.length;
       return { x: sx/n, y: sy/n, z: sz/n };
     });
-    return smoothed;
   }
 
-  // ── Màu cho từng bàn tay ─────────────────────────────────
-  const HAND_COLORS = [
-    { line: '#00D4FF', dot: '#FF3D71', text: '#00D4FF' },
-    { line: '#00FF99', dot: '#FF9F00', text: '#00FF99' },
-  ];
-
-  // ── Vẽ skeleton nâng cao ─────────────────────────────────
-  function drawHandSkeleton(landmarks, colors) {
-    // Vẽ connections
-    drawConnectors(ctx, landmarks, HAND_CONNECTIONS, {
-      color: colors.line, lineWidth: IS_MOBILE ? 1.5 : 2.5
-    });
-    // Vẽ landmarks
-    drawLandmarks(ctx, landmarks, {
-      color: colors.dot, fillColor: colors.dot, lineWidth: 1, radius: IS_MOBILE ? 2 : 4
-    });
-
-    // ⚡ Mobile: bỏ highlight fingertip để nhẹ hơn
-    if (!IS_MOBILE) {
-      const fingertips = [4, 8, 12, 16, 20];
-      fingertips.forEach(idx => {
-        const lm = landmarks[idx];
-        const x  = lm.x * canvas.width;
-        const y  = lm.y * canvas.height;
-        ctx.beginPath();
-        ctx.arc(x, y, 6, 0, Math.PI * 2);
-        ctx.fillStyle = colors.line + 'aa';
-        ctx.fill();
-        ctx.strokeStyle = colors.line;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      });
-    }
-  }
-
-  // ── Callback mỗi frame ───────────────────────────────────
-  function onResults(results) {
-    ctx.save();
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
-
-    const handsData  = results.multiHandLandmarks;
-    const handedness = results.multiHandedness || [];
-
-    // Badge số tay
-    const handBadge = document.getElementById('handCountBadge');
-    if (handBadge) {
-      if (handsData && handsData.length > 0) {
-        handBadge.style.display = 'block';
-        handBadge.textContent = handsData.length === 2 ? '👐 2 tay' : '✋ 1 tay';
-        handBadge.style.background  = handsData.length === 2 ? 'rgba(0,255,153,0.2)' : 'rgba(0,212,255,0.2)';
-        handBadge.style.borderColor = handsData.length === 2 ? 'rgba(0,255,153,0.5)' : 'rgba(0,212,255,0.5)';
-        handBadge.style.color       = handsData.length === 2 ? '#00FF99' : '#00D4FF';
-      } else {
-        handBadge.style.display = 'none';
-      }
-    }
-
-    if (handsData && handsData.length > 0) {
-      handsData.forEach((rawLandmarks, i) => {
-        const colors = HAND_COLORS[i % HAND_COLORS.length];
-        const side   = handedness[i] ? handedness[i].label : (i === 0 ? 'Left' : 'Right');
-
-        // Smooth landmarks
-        const landmarks = i === 0 ? smoothLandmarks(rawLandmarks) : rawLandmarks;
-
-        // Nhãn tay - ⚡ mobile bỏ shadow để nhẹ hơn
-        const wrist = landmarks[0];
-        ctx.font = 'bold 13px sans-serif';
-        ctx.fillStyle = colors.text;
-        if (!IS_MOBILE) {
-          ctx.shadowColor = 'rgba(0,0,0,0.8)';
-          ctx.shadowBlur = 4;
-        }
-        ctx.fillText(
-          side === 'Left' ? '✋ Trái' : '🤚 Phải',
-          wrist.x * canvas.width - 30,
-          wrist.y * canvas.height - 15
-        );
-        ctx.shadowBlur = 0;
-
-        drawHandSkeleton(landmarks, colors);
-      });
-
-      // Nhận dạng cử chỉ
-      if (detecting && typeof App !== 'undefined') {
-        let bestResult = null;
-        for (let i = 0; i < handsData.length; i++) {
-          const lm = i === 0 ? smoothLandmarks(handsData[i]) : handsData[i];
-          const result = classifyGesture(lm);
-          if (result && (!bestResult || result.confidence > bestResult.confidence)) {
-            bestResult = result;
-            bestResult.handIndex = i;
-            bestResult.handLabel = handedness[i] ? handedness[i].label : 'Unknown';
-          }
-        }
-        if (bestResult) {
-          App.onGestureDetected(bestResult);
-        }
-      }
-    } else {
-      if (detecting && typeof App !== 'undefined') {
-        App.onNoHand();
-      }
-    }
-
-    ctx.restore();
-  }
-
-  // ── FPS ──────────────────────────────────────────────────
+  // ── FPS counter ───────────────────────────────────────────
   function calcFps() {
     frameCount++;
     const now = Date.now();
     if (now - lastFpsTime >= 1000) {
-      fps = frameCount;
-      frameCount = 0;
-      lastFpsTime = now;
+      fps = frameCount; frameCount = 0; lastFpsTime = now;
       const el = document.getElementById('fpsDisplay');
       if (el) el.textContent = fps + ' fps';
     }
   }
 
-  return {
-    startCamera,
-    stopCamera,
-    setDetecting,
-    isRunning: () => running,
-    getFps:    () => fps,
-  };
+  return { startCamera, stopCamera, setDetecting, isRunning: () => running, getFps: () => fps };
 })();
 
 window.MPEngine = MPEngine;
