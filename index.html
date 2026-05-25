@@ -929,6 +929,254 @@ body {
       background: rgba(0,212,255,0.08); border: 1px solid rgba(0,212,255,0.2);
       border-radius: 8px; font-size: 11px; color: rgba(0,212,255,0.8);
     }
+
+    /* ── Phrase Match Popup ─────────────────────────────── */
+    #phraseMatchPopup {
+      position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+      z-index: 300; width: calc(100% - 32px); max-width: 440px;
+      background: linear-gradient(135deg, rgba(10,25,50,0.97), rgba(5,15,35,0.98));
+      border: 2px solid rgba(0,212,255,0.6);
+      border-radius: 18px; padding: 18px 20px 14px;
+      box-shadow: 0 8px 40px rgba(0,212,255,0.25), 0 0 0 1px rgba(0,212,255,0.1);
+      backdrop-filter: blur(12px);
+      display: none; animation: popupSlide 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes popupSlide {
+      from { opacity:0; transform: translateX(-50%) translateY(-16px) scale(0.92); }
+      to   { opacity:1; transform: translateX(-50%) translateY(0) scale(1); }
+    }
+    .popup-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .popup-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(0,212,255,0.7); font-weight: 700; }
+    .popup-close { background: none; border: none; color: rgba(255,255,255,0.35); font-size: 18px; cursor: pointer; padding: 0 4px; line-height:1; }
+    .popup-close:hover { color: #fff; }
+    .popup-phrase-text {
+      font-size: 26px; font-weight: 800; color: #fff;
+      letter-spacing: 1px; line-height: 1.2; margin-bottom: 12px;
+      text-shadow: 0 0 20px rgba(0,212,255,0.4);
+    }
+    .popup-sequence {
+      display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 14px; align-items: center;
+    }
+    .popup-sign-chip {
+      background: rgba(0,212,255,0.15); border: 1px solid rgba(0,212,255,0.35);
+      border-radius: 8px; padding: 4px 10px;
+      font-size: 13px; font-weight: 700; color: #00D4FF;
+    }
+    .popup-sign-chip.matched {
+      background: rgba(0,255,153,0.2); border-color: rgba(0,255,153,0.5); color: #00FF99;
+    }
+    .popup-arrow { color: rgba(255,255,255,0.3); font-size: 14px; }
+    .popup-actions { display: flex; gap: 8px; }
+    .popup-btn-speak {
+      flex: 1; padding: 10px; border: none; border-radius: 10px;
+      background: linear-gradient(135deg, #00D4FF, #0099cc);
+      color: #000; font-size: 14px; font-weight: 700; cursor: pointer;
+      transition: all 0.18s;
+    }
+    .popup-btn-speak:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,212,255,0.4); }
+    .popup-btn-dismiss {
+      padding: 10px 14px; border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px; background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.5); font-size: 13px; cursor: pointer;
+    }
+    .popup-btn-dismiss:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    /* ── Sign Guide Panel ──────────────────────────────── */
+    .sign-guide-section {
+      margin: 0 10px 10px;
+      background: var(--bg-card);
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .sign-guide-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, rgba(0,30,60,0.9), rgba(0,15,40,0.95));
+      border-bottom: 1px solid rgba(0,212,255,0.15);
+      cursor: pointer;
+    }
+    .sign-guide-title { font-size: 13px; font-weight: 700; color: #00D4FF; display: flex; align-items: center; gap: 8px; }
+    .sign-guide-toggle { color: rgba(255,255,255,0.4); font-size: 16px; transition: transform 0.2s; }
+    .sign-guide-toggle.open { transform: rotate(180deg); }
+    .sign-guide-body { display: none; padding: 12px 14px; }
+    .sign-guide-body.open { display: block; }
+
+    .sign-guide-tabs {
+      display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .sign-guide-tab {
+      padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+      border: 1.5px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.15s;
+    }
+    .sign-guide-tab.active {
+      background: rgba(0,212,255,0.2); border-color: rgba(0,212,255,0.5); color: #00D4FF;
+    }
+
+    .phrase-guide-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    }
+    .phrase-guide-card {
+      background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.08);
+      border-radius: 12px; padding: 10px 12px; cursor: pointer;
+      transition: all 0.18s; position: relative; overflow: hidden;
+    }
+    .phrase-guide-card:hover {
+      background: rgba(0,212,255,0.1); border-color: rgba(0,212,255,0.35);
+      transform: translateY(-1px);
+    }
+    .phrase-guide-card:active { transform: scale(0.97); }
+    .pgc-phrase { font-size: 14px; font-weight: 700; color: #e0f7ff; margin-bottom: 6px; }
+    .pgc-sequence { display: flex; gap: 3px; flex-wrap: wrap; align-items: center; }
+    .pgc-sign {
+      font-size: 10px; font-weight: 700; padding: 2px 6px;
+      background: rgba(0,212,255,0.12); border: 1px solid rgba(0,212,255,0.25);
+      border-radius: 5px; color: #00D4FF;
+    }
+    .pgc-arrow { color: rgba(255,255,255,0.2); font-size: 10px; }
+    .pgc-try-btn {
+      margin-top: 7px; width: 100%; padding: 5px; border: none; border-radius: 7px;
+      background: rgba(0,212,255,0.15); border: 1px solid rgba(0,212,255,0.3);
+      color: #00D4FF; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s;
+    }
+    .pgc-try-btn:hover { background: rgba(0,212,255,0.25); }
+
+    /* Single sign guide */
+    .single-sign-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 6px;
+    }
+    .single-sign-card {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      padding: 8px 4px; border-radius: 10px; cursor: pointer;
+      background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.08);
+      transition: all 0.15s;
+    }
+    .single-sign-card:hover { background: rgba(0,212,255,0.12); border-color: rgba(0,212,255,0.35); }
+    .single-sign-card:active { transform: scale(0.93); }
+    .ssc-hand { font-size: 22px; line-height:1; }
+    .ssc-letter { font-size: 14px; font-weight: 800; color: #e0f7ff; }
+    .ssc-hint { font-size: 9px; color: rgba(255,255,255,0.3); text-align:center; line-height:1.3; }
+
+    /* ── Mode Selector ─────────────────────────────────────── */
+    .mode-selector {
+      display: flex; gap: 0; margin: 10px 12px 6px;
+      background: rgba(255,255,255,0.05);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 14px; overflow: hidden;
+    }
+    .mode-btn {
+      flex: 1; padding: 11px 8px; border: none; background: none;
+      color: rgba(255,255,255,0.45); font-size: 12.5px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; text-align: center;
+      line-height: 1.3; position: relative;
+    }
+    .mode-btn:first-child { border-right: 1.5px solid rgba(255,255,255,0.1); }
+    .mode-btn.active {
+      background: linear-gradient(135deg, rgba(91,111,255,0.35), rgba(0,212,255,0.25));
+      color: #fff;
+      box-shadow: inset 0 0 20px rgba(0,212,255,0.08);
+    }
+    .mode-btn.active::after {
+      content: ''; position: absolute; bottom: 0; left: 20%; right: 20%;
+      height: 2.5px; background: linear-gradient(90deg, #5b6fff, #00D4FF);
+      border-radius: 2px;
+    }
+    .mode-icon { font-size: 22px; display: block; margin-bottom: 3px; }
+    .mode-label { font-size: 11.5px; }
+    .mode-desc { font-size: 9.5px; color: rgba(255,255,255,0.35); display: block; margin-top: 2px; font-weight: 400; }
+    .mode-btn.active .mode-desc { color: rgba(0,212,255,0.7); }
+
+    /* ── Gesture Action Panel ──────────────────────────────── */
+    .gesture-action-panel {
+      padding: 10px 12px 14px;
+      display: none;
+    }
+    .gesture-action-panel.active { display: block; }
+
+    .gesture-result-box {
+      margin: 0 0 12px;
+      min-height: 68px;
+      background: linear-gradient(135deg, rgba(0,30,60,0.95), rgba(0,15,40,0.98));
+      border: 2px solid rgba(0,212,255,0.3);
+      border-radius: 14px;
+      padding: 12px 16px;
+      display: flex; align-items: center; gap: 12px;
+      transition: border-color 0.3s;
+    }
+    .gesture-result-box.matched {
+      border-color: rgba(0,255,153,0.6);
+      box-shadow: 0 0 20px rgba(0,255,153,0.15);
+    }
+    .gesture-result-emoji { font-size: 36px; flex-shrink: 0; }
+    .gesture-result-text { flex: 1; }
+    .gesture-result-label { font-size: 20px; font-weight: 800; color: #fff; line-height: 1.2; }
+    .gesture-result-sub { font-size: 12px; color: rgba(0,212,255,0.7); margin-top: 3px; }
+    .gesture-speak-btn {
+      padding: 8px 14px; border: none; border-radius: 10px;
+      background: linear-gradient(135deg, #00D4FF, #0099cc);
+      color: #000; font-size: 13px; font-weight: 700; cursor: pointer;
+      transition: all 0.18s; flex-shrink: 0;
+    }
+    .gesture-speak-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,212,255,0.35); }
+    .gesture-speak-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    /* Topic tabs */
+    .gesture-topic-tabs {
+      display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px;
+    }
+    .gesture-topic-tab {
+      padding: 5px 11px; border-radius: 20px; font-size: 11.5px; font-weight: 600;
+      border: 1.5px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.45); cursor: pointer; transition: all 0.15s;
+    }
+    .gesture-topic-tab.active {
+      background: rgba(0,212,255,0.2); border-color: rgba(0,212,255,0.5); color: #00D4FF;
+    }
+
+    /* Gesture reference grid */
+    .gesture-ref-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 7px;
+    }
+    .gesture-ref-card {
+      background: rgba(255,255,255,0.04); border: 1.5px solid rgba(255,255,255,0.08);
+      border-radius: 12px; padding: 9px 11px; cursor: pointer; transition: all 0.18s;
+    }
+    .gesture-ref-card:hover { background: rgba(0,212,255,0.1); border-color: rgba(0,212,255,0.35); transform: translateY(-1px); }
+    .gesture-ref-card.highlight { border-color: rgba(0,255,153,0.5); background: rgba(0,255,153,0.07); }
+    .grc-top { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; }
+    .grc-emoji { font-size: 22px; }
+    .grc-phrase { font-size: 13px; font-weight: 700; color: #e0f7ff; flex: 1; }
+    .grc-gesture-name {
+      font-size: 10px; font-weight: 700; color: rgba(0,212,255,0.8);
+      background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 5px; padding: 2px 7px; display: inline-block; margin-bottom: 3px;
+    }
+    .grc-hint { font-size: 10px; color: rgba(255,255,255,0.3); line-height: 1.4; }
+    .grc-speak-mini {
+      margin-top: 6px; width: 100%; padding: 5px; border: none; border-radius: 7px;
+      background: rgba(0,212,255,0.12); border: 1px solid rgba(0,212,255,0.25);
+      color: #00D4FF; font-size: 11px; font-weight: 600; cursor: pointer;
+    }
+    .grc-speak-mini:hover { background: rgba(0,212,255,0.22); }
+
+    /* Phrase match notification bar */
+    .phrase-match-bar {
+      margin: 0 10px 8px;
+      padding: 10px 14px;
+      background: linear-gradient(135deg, rgba(0,255,153,0.12), rgba(0,212,255,0.12));
+      border: 1.5px solid rgba(0,255,153,0.35);
+      border-radius: 12px;
+      display: none; align-items: center; gap: 10px;
+      animation: fadeIn 0.3s ease;
+    }
+    .phrase-match-bar.show { display: flex; }
+    .pmb-text { flex:1; font-size: 14px; font-weight: 700; color: #00FF99; }
+    .pmb-speak { padding: 6px 14px; border: none; border-radius: 8px; background: #00FF99; color: #000; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .pmb-dismiss { background: none; border: none; color: rgba(255,255,255,0.3); font-size: 18px; cursor: pointer; padding: 0 2px; }
   </style>
 </head>
 <body>
@@ -992,6 +1240,20 @@ body {
   <span class="badge" id="fpsDisplay" style="display:none">0 fps</span>
 </div>
 
+<!-- ── MODE SELECTOR ── -->
+<div class="mode-selector" id="modeSelectorBar">
+  <button class="mode-btn active" id="modeBtn1" onclick="switchMode(1)">
+    <span class="mode-icon">🔤</span>
+    <span class="mode-label">Thủ ngữ chữ cái</span>
+    <span class="mode-desc">Ghép từng chữ cái</span>
+  </button>
+  <button class="mode-btn" id="modeBtn2" onclick="switchMode(2)">
+    <span class="mode-icon">🤙</span>
+    <span class="mode-label">Nhận dạng cử chỉ</span>
+    <span class="mode-desc">Hành động tức thì</span>
+  </button>
+</div>
+
 <!-- ── CAMERA ── -->
 <section class="camera-wrapper" style="position:relative">
   <video id="inputVideo" playsinline style="display:none"></video>
@@ -1017,7 +1279,7 @@ body {
 </section>
 
 <!-- ── OUTPUT ── -->
-<section class="output-section">
+<section class="output-section" id="outputSection">
   <label class="section-label">✍️ Chữ đang ghép (nhấn vào ô để xoá)</label>
   <div class="speech-bubble" id="speechBubble">
     <span class="bubble-text placeholder" id="outputText">
@@ -1036,8 +1298,68 @@ body {
   </div>
 </section>
 
+<!-- ── PHRASE MATCH BAR ── -->
+<div class="phrase-match-bar" id="phraseMatchBar">
+  <span style="font-size:20px">🎉</span>
+  <span class="pmb-text" id="phraseMatchText"></span>
+  <button class="pmb-speak" id="phraseMatchSpeakBtn" onclick="speakMatchedPhrase()">🔊 Phát</button>
+  <button class="pmb-dismiss" onclick="dismissPhraseMatch()">✕</button>
+</div>
+
+<!-- ── PHRASE MATCH POPUP ── -->
+<div id="phraseMatchPopup">
+  <div class="popup-header">
+    <span class="popup-title">🎯 Câu hoàn chỉnh được nhận ra</span>
+    <button class="popup-close" onclick="dismissPhraseMatch()">✕</button>
+  </div>
+  <div class="popup-phrase-text" id="popupPhraseText"></div>
+  <div class="popup-sequence" id="popupSequence"></div>
+  <div class="popup-actions">
+    <button class="popup-btn-speak" onclick="speakMatchedPhrase()">🔊 Phát ngay</button>
+    <button class="popup-btn-dismiss" onclick="dismissPhraseMatch()">Bỏ qua</button>
+  </div>
+</div>
+
+<!-- ── GESTURE ACTION PANEL (Mode 2) ── -->
+<div class="gesture-action-panel" id="gestureActionPanel">
+  <div class="gesture-result-box" id="gestureResultBox">
+    <span class="gesture-result-emoji" id="gestureResultEmoji">🤙</span>
+    <div class="gesture-result-text">
+      <div class="gesture-result-label" id="gestureResultLabel">Đưa tay vào camera…</div>
+      <div class="gesture-result-sub" id="gestureResultSub">Nhận dạng cử chỉ hành động</div>
+    </div>
+    <button class="gesture-speak-btn" id="gestureResultSpeakBtn" onclick="speakGestureResult()" disabled>🔊</button>
+  </div>
+  <div class="gesture-topic-tabs">
+    <button class="gesture-topic-tab active" onclick="switchGestureTopic('greet', this)">👋 Chào hỏi</button>
+    <button class="gesture-topic-tab" onclick="switchGestureTopic('daily', this)">📅 Hàng ngày</button>
+    <button class="gesture-topic-tab" onclick="switchGestureTopic('emotion', this)">😊 Cảm xúc</button>
+    <button class="gesture-topic-tab" onclick="switchGestureTopic('medical', this)">🏥 Y tế</button>
+    <button class="gesture-topic-tab" onclick="switchGestureTopic('help', this)">🆘 Khẩn cấp</button>
+    <button class="gesture-topic-tab" onclick="switchGestureTopic('direction', this)">🧭 Hướng dẫn</button>
+  </div>
+  <div class="gesture-ref-grid" id="gestureRefGrid"></div>
+</div>
+
+<!-- ── GỢI Ý THAO TÁC THỦ NGỮ ── -->
+<div class="sign-guide-section" id="signGuideSection">
+  <div class="sign-guide-header" onclick="toggleSignGuide()">
+    <span class="sign-guide-title">🤟 Gợi ý cử chỉ & câu thủ ngữ <span style="font-size:11px;color:rgba(0,212,255,0.6);font-weight:400">(nhấn để mở)</span></span>
+    <span class="sign-guide-toggle" id="signGuideToggle">▼</span>
+  </div>
+  <div class="sign-guide-body" id="signGuideBody">
+    <div class="sign-guide-tabs">
+      <button class="sign-guide-tab active" onclick="switchSignGuideTab('phrases', this)">💬 Câu chào hỏi</button>
+      <button class="sign-guide-tab" onclick="switchSignGuideTab('daily', this)">📅 Hàng ngày</button>
+      <button class="sign-guide-tab" onclick="switchSignGuideTab('help', this)">🆘 Cần giúp đỡ</button>
+      <button class="sign-guide-tab" onclick="switchSignGuideTab('alphabet', this)">🔤 Bảng chữ</button>
+    </div>
+    <div id="signGuideContent"></div>
+  </div>
+</div>
+
 <!-- ── KEYBOARD TOGGLE ── -->
-<section class="phrases-section" style="padding-bottom:0">
+<section class="phrases-section" id="keyboardSection" style="padding-bottom:0">
   <div class="input-toggle-row">
     <span class="input-toggle-label">Nhập liệu:</span>
     <button class="toggle-input-btn" id="toggleKbBtn" onclick="SignKeyboard.toggle('keyboard')">
@@ -1051,7 +1373,7 @@ body {
 </section>
 
 <!-- ── VOICE PANEL ── -->
-<section class="voice-quick-section">
+<section class="voice-quick-section" id="voiceSection">
   <div class="voice-engine-header">
     <span class="section-label" style="margin:0">🎙️ Chọn giọng đọc</span>
     <button class="api-toggle-btn" data-admin-only onclick="AdminAuth.showAdminPanel()" id="apiToggleBtn">
@@ -1081,7 +1403,7 @@ body {
 </section>
 
 <!-- ── TÊN CÁ NHÂN ── -->
-<section class="phrases-section" style="padding-bottom:0">
+<section class="phrases-section" id="nameSection" style="padding-bottom:0">
   <label class="section-label">🙋 Nhập tên của bạn</label>
   <div class="name-input-row">
     <input type="text" id="userNameInput" class="name-input"
@@ -1091,7 +1413,7 @@ body {
 </section>
 
 <!-- ── NÚT NHANH ── -->
-<section class="phrases-section" style="padding-bottom:0">
+<section class="phrases-section" id="quickSection" style="padding-bottom:0">
   <label class="section-label">⭐ Nút nhanh cá nhân</label>
   <div id="quickBtnsRow" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px"></div>
   <div style="margin-top:8px; display:flex; gap:6px; align-items:center; flex-wrap:wrap">
@@ -1104,7 +1426,7 @@ body {
 </section>
 
 <!-- ── GỢI Ý ── -->
-<section class="phrases-section" style="padding-bottom:0">
+<section class="phrases-section" id="suggestSection" style="padding-bottom:0">
   <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px">
     <label class="section-label" style="margin:0">💡 Gợi ý câu theo ngữ cảnh</label>
     <button class="qa-btn" id="suggestBtn" onclick="getSuggestions()"
@@ -1508,41 +1830,46 @@ const SignKeyboard = (() => {
 
   let mode = 'hidden'; // 'hidden' | 'keyboard' | 'signboard'
 
-  // Dữ liệu ký hiệu thủ ngữ – emoji đại diện và mô tả ngón tay
+  // Dữ liệu ký hiệu thủ ngữ – emoji & mô tả khớp với GESTURE_CONFIGS của AI model
+  // Nguồn: GESTURE_CONFIGS {T,I,M,R,P} + special modifier trong generateTrainingData()
+  // ✅ 33 emoji khác nhau hoàn toàn, mô tả đúng tư thế bàn tay mà model nhận diện
   const SIGN_DATA = [
-    { id:'A', emoji:'👊', desc:'Nắm tay, ngón cái bên' },
-    { id:'Ă', emoji:'👊', desc:'A + dấu râu ngang' },
-    { id:'Â', emoji:'👊', desc:'A + dấu mũ trên' },
-    { id:'B', emoji:'✋', desc:'4 ngón thẳng, ngón cái vào' },
-    { id:'C', emoji:'🤌', desc:'Bàn tay cong hình C' },
-    { id:'D', emoji:'☝️', desc:'Trỏ thẳng, còn lại nắm' },
-    { id:'Đ', emoji:'☝️', desc:'D + ngón cái chạm' },
-    { id:'E', emoji:'🤙', desc:'3 ngón cong, cái và út mở' },
-    { id:'Ê', emoji:'🤙', desc:'E + dấu mũ' },
-    { id:'G', emoji:'👈', desc:'Trỏ và cái ngang, còn lại nắm' },
-    { id:'H', emoji:'✌️', desc:'Trỏ + giữa nằm ngang' },
-    { id:'I', emoji:'🤙', desc:'Út thẳng, còn lại nắm' },
-    { id:'K', emoji:'✌️', desc:'Trỏ lên, giữa chéo, cái giữa' },
-    { id:'L', emoji:'👆', desc:'Cái và trỏ thành chữ L' },
-    { id:'M', emoji:'🤜', desc:'3 ngón đặt lên cái' },
-    { id:'N', emoji:'✌️', desc:'2 ngón đặt lên cái' },
-    { id:'O', emoji:'👌', desc:'Các ngón tạo hình tròn O' },
-    { id:'Ô', emoji:'👌', desc:'O + dấu mũ' },
-    { id:'Ơ', emoji:'👌', desc:'O + dấu râu' },
-    { id:'P', emoji:'🤘', desc:'Trỏ và giữa chỉ xuống, cái mở' },
-    { id:'Q', emoji:'🤘', desc:'Cái và trỏ chỉ xuống' },
-    { id:'R', emoji:'🤞', desc:'Trỏ và giữa bắt chéo' },
-    { id:'S', emoji:'✊', desc:'Nắm tay, cái qua ngón' },
-    { id:'T', emoji:'👍', desc:'Cái giữa trỏ và giữa' },
-    { id:'U', emoji:'✌️', desc:'Trỏ và giữa thẳng, khép' },
-    { id:'Ư', emoji:'✌️', desc:'U + dấu râu' },
-    { id:'V', emoji:'✌️', desc:'Trỏ và giữa mở rộng (chữ V)' },
-    { id:'W', emoji:'🤟', desc:'Cái, trỏ, út mở (W)' },
-    { id:'X', emoji:'☝️', desc:'Trỏ cong móc hình X' },
-    { id:'Y', emoji:'🤙', desc:'Cái và út mở (Y)' },
-    { id:'DẤU_THANH', emoji:'🔢', desc:'Dấu thanh → khoảng trắng từ' },
-    { id:'DẤU_RÂU',  emoji:'🔡', desc:'Râu ngang biến đổi nguyên âm' },
-    { id:'DẤU_MŨ',   emoji:'🔤', desc:'Mũ nhọn biến đổi nguyên âm' },
+    // ── Nguyên âm ──────────────────────────────────────────────────────────
+    { id:'A',  emoji:'✊',  desc:'Nắm tay, ngón cái đặt sang bên ngoài' },        // T:0 I:0 M:0 R:0 P:0 thumb_side
+    { id:'Ă',  emoji:'🫴',  desc:'Ngón cái thẳng, trỏ+giữa nửa mở, lòng tay ngửa' }, // T:1 I:0.5 M:0.5 dau_rau
+    { id:'Â',  emoji:'🤌',  desc:'Ngón cái+trỏ chụm nhẹ nửa mở (dấu mũ)' },      // T:0.5 I:0.5 dau_mu
+    { id:'E',  emoji:'🖐️',  desc:'Ngón trỏ+giữa nửa cong móc xuống' },           // T:0 I:0.5 M:0.5 hook
+    { id:'Ê',  emoji:'🫲',  desc:'Ngón trỏ+giữa cong móc, khép hơn E' },          // T:0 I:0.5 M:0.5 close_hook
+    { id:'I',  emoji:'🤏',  desc:'Chỉ ngón út thẳng, 4 ngón còn lại nắm' },       // T:0 I:0 M:0 R:0 P:1
+    { id:'O',  emoji:'👌',  desc:'Ngón cái+trỏ tạo vòng tròn O' },                // T:0.3 I:0.3 o_circle
+    { id:'Ô',  emoji:'🫰',  desc:'Ngón trỏ+giữa nửa mở, cái chạm trỏ (mũ)' },   // T:0.3 I:0.5 M:0.5 dau_mu2
+    { id:'Ơ',  emoji:'🤚',  desc:'Ngón cái+út thẳng, 3 ngón giữa nắm (râu)' },   // T:1 I:0.3 o_rau
+    { id:'U',  emoji:'🤞',  desc:'Ngón trỏ+giữa thẳng, khép sát nhau' },          // T:0 I:1 M:1 u_close
+    { id:'Ư',  emoji:'🫶',  desc:'Ngón cái+trỏ+út thẳng, giữa+nhẫn nắm' },       // T:1 I:1 P:1 u_rau
+    { id:'Y',  emoji:'🤙',  desc:'Ngón cái+út mở rộng, 3 ngón giữa nắm' },        // T:1 I:0 M:0 R:0 P:1
+    // ── Phụ âm ─────────────────────────────────────────────────────────────
+    { id:'B',  emoji:'✋',  desc:'4 ngón thẳng đứng, ngón cái gập vào lòng' },    // T:0 I:1 M:1 R:1 P:1
+    { id:'C',  emoji:'🫳',  desc:'Tất cả ngón nửa cong, bàn tay hình chữ C' },   // T:0.5 I:0.5 M:0.5 R:0.5 P:0.5 curve
+    { id:'D',  emoji:'☝️',  desc:'Ngón trỏ thẳng lên, ngón cái chạm giữa' },     // T:0.5 I:1 d_touch
+    { id:'Đ',  emoji:'👉',  desc:'Ngón trỏ thẳng nằm ngang, còn lại nắm' },       // T:0 I:1 horiz
+    { id:'G',  emoji:'👈',  desc:'Ngón cái+trỏ chỉ sang ngang' },                 // T:1 I:1 g_side
+    { id:'H',  emoji:'🤘',  desc:'Ngón trỏ+giữa thẳng nằm ngang, song song' },   // T:0 I:1 M:1 h_horiz
+    { id:'K',  emoji:'🖖',  desc:'Ngón cái+trỏ thẳng, giữa nửa mở' },            // T:1 I:1 M:0.5 k_shape
+    { id:'L',  emoji:'🫱',  desc:'Ngón cái+trỏ thẳng, tạo góc vuông chữ L' },    // T:1 I:1 l_up
+    { id:'M',  emoji:'🫸',  desc:'Nắm tay, ngón cái đè lên 3 ngón giữa' },        // T:0 I:0 M:0 R:0 P:0 m_press
+    { id:'N',  emoji:'🤛',  desc:'Nắm tay, ngón cái đè lên 2 ngón trỏ-giữa' },   // T:0 I:0 M:0 R:0 P:0 n_press2
+    { id:'P',  emoji:'👇',  desc:'Ngón cái+trỏ thẳng, chỉ hướng xuống' },         // T:1 I:1 p_down
+    { id:'Q',  emoji:'🫵',  desc:'Ngón cái+trỏ thẳng xuống, hơi xoay' },          // T:1 I:1 q_down
+    { id:'R',  emoji:'🤟',  desc:'Ngón trỏ+giữa bắt chéo nhau' },                 // T:0 I:1 M:1 r_cross
+    { id:'S',  emoji:'👊',  desc:'Nắm tay, ngón cái vắt qua 4 ngón' },            // T:1 I:0 thumb_over
+    { id:'T',  emoji:'👍',  desc:'Ngón cái kẹp giữa ngón trỏ và giữa' },          // T:0.5 I:0 t_tuck
+    { id:'V',  emoji:'✌️',  desc:'Ngón trỏ+giữa thẳng, mở rộng hình V' },        // T:0 I:1 M:1 v_spread
+    { id:'W',  emoji:'🤲',  desc:'Ngón trỏ+giữa+nhẫn thẳng, ngón cái+út gập' }, // T:0 I:1 M:1 R:1
+    { id:'X',  emoji:'🪝',  desc:'Ngón trỏ cong móc hình chữ X' },                // T:0 I:0.5 x_hook
+    // ── Dấu phụ ────────────────────────────────────────────────────────────
+    { id:'DẤU_THANH', emoji:'🔢', desc:'Tất cả 5 ngón mở hoàn toàn' },           // all_open
+    { id:'DẤU_RÂU',  emoji:'🔡', desc:'Ngón cái+trỏ+giữa thẳng, nhẫn+út gập' }, // three_open
+    { id:'DẤU_MŨ',   emoji:'🔤', desc:'Ngón trỏ+giữa thẳng, kiểu dấu mũ' },     // dau_mu_gest
   ];
 
   // ── Nhóm theo loại ─────────────────────────────────────────
@@ -1551,6 +1878,20 @@ const SignKeyboard = (() => {
     { label: '🔠 Phụ âm',      ids: ['B','C','D','Đ','G','H','K','L','M','N','P','Q','R','S','T','V','W','X'] },
     { label: '✏️ Dấu phụ',     ids: ['DẤU_THANH','DẤU_RÂU','DẤU_MŨ'] },
   ];
+
+  // Dev: kiểm tra emoji trùng khi load
+  (function() {
+    var emojis = SIGN_DATA.map(function(s){return s.emoji;});
+    var skip = ["🔢","🔡","🔤"];
+    var seen = {}, dupes = [];
+    SIGN_DATA.forEach(function(s){
+      if (skip.includes(s.emoji)) return;
+      if (seen[s.emoji]) dupes.push(seen[s.emoji]+" & "+s.id+": "+s.emoji);
+      else seen[s.emoji] = s.id;
+    });
+    if (dupes.length) console.warn("⚠️ Emoji thủ ngữ bị trùng:", dupes);
+    else console.info("✅ Tất cả emoji thủ ngữ đều khác nhau");
+  })();
 
   // ── Keyboard characters ──────────────────────────────────────
   const KB_ROWS = [
@@ -1574,7 +1915,7 @@ const SignKeyboard = (() => {
               <button class="skb-sign-btn" onclick="SignKeyboard.insertSign('${id}')" title="${s.desc}">
                 <span class="skb-emoji">${s.emoji}</span>
                 <span class="skb-letter">${shortId}</span>
-                <span class="skb-desc">${s.desc.split(',')[0].slice(0,14)}</span>
+                <span class="skb-desc">${s.desc.split(',')[0].split('–')[0].split('→')[0].trim().slice(0,16)}</span>
               </button>
             `;
           }).join('')}
@@ -3734,7 +4075,845 @@ function useSuggestion(text) {
 
 function selectPhrase() {}
 
+// ══════════════════════════════════════════════════════════════
+// PHRASE SEQUENCE RECOGNITION
+// Nhận dạng chuỗi cử chỉ → hiện câu hoàn chỉnh
+// ══════════════════════════════════════════════════════════════
+
+// Bảng câu hoàn chỉnh: key = chuỗi chữ cái ghép lại, value = câu đầy đủ
+const PHRASE_SEQUENCES = {
+  // Chào hỏi
+  'XIN CHAO':    'Xin chào!',
+  'XIN CHAO BAN': 'Xin chào bạn!',
+  'TAM BIET':    'Tạm biệt!',
+  'HEN GAP LAI': 'Hẹn gặp lại!',
+  'CHAO BUO'  :  'Chào buổi sáng!',
+  'BAN KHOE':    'Bạn có khỏe không?',
+  'TOI KHOE':    'Tôi khỏe, cảm ơn!',
+  'CAM ON':      'Cảm ơn bạn!',
+  'CAM ON BAN':  'Cảm ơn bạn rất nhiều!',
+  'XIN LOI':     'Xin lỗi bạn!',
+  'DA VANG':     'Dạ vâng!',
+  'DA KHONG':    'Dạ không!',
+  'VUI GAP BAN': 'Rất vui được gặp bạn!',
+
+  // Cần giúp đỡ
+  'TOI CAN GIUP': 'Tôi cần giúp đỡ!',
+  'CAN GIUP':     'Cần giúp đỡ!',
+  'GOI GIUP TOI': 'Gọi giúp tôi với!',
+  'KHONG HIEU':   'Tôi không hiểu!',
+  'NOI CHAM':     'Nói chậm hơn được không?',
+  'VIET RA':      'Viết ra giấy giúp tôi!',
+  'PHONG VE SINH': 'Phòng vệ sinh ở đâu?',
+  'BAO NHIEU TIEN': 'Bao nhiêu tiền?',
+
+  // Giao tiếp
+  'TOI KHIEM THINH': 'Tôi là người khiếm thính',
+  'KHIEM THINH':     'Tôi là người khiếm thính',
+  'BAN CO THE':      'Bạn có thể giúp tôi không?',
+  'TOI DONG Y':      'Tôi đồng ý!',
+  'TOI KHONG':       'Tôi không đồng ý',
+  'DUOC ROI':        'Được rồi!',
+  'OK':              'OK, được!',
+
+  // Khẩn cấp
+  'CUU TOI':    'Cứu tôi với!',
+  'GOI CAP CUU': 'Gọi cấp cứu!',
+  'NGUY HIEM':  'Nguy hiểm!',
+};
+
+// Trạng thái theo dõi chuỗi câu
+const PhraseDetector = (() => {
+  let _matchedPhrase = null;
+  let _matchedKey    = null;
+
+  // Chuẩn hoá buffer → key để tra cứu
+  function normalizeBuffer(buffer) {
+    return buffer
+      .filter(ch => ch.trim())
+      .join('')
+      .toUpperCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // bỏ dấu thanh/dấu phụ để so sánh đơn giản
+      .replace(/Đ/g, 'D')
+      .replace(/[^A-Z\s]/g, '');
+  }
+
+  // Kiểm tra buffer hiện tại có khớp câu nào không
+  function checkBuffer(buffer) {
+    if (buffer.length < 2) return null;
+
+    const raw = buffer.join('').trim();
+    if (!raw) return null;
+
+    // Chuẩn hoá: ghép chữ cái thành chuỗi có khoảng trắng theo từ
+    // Mỗi chữ cái là một ký tự, khoảng trắng phân cách từ
+    const words = raw.split(' ').filter(w => w.trim()).map(w => w.toUpperCase());
+    const keyRaw = words.join(' ');
+
+    // Kiểm tra khớp trực tiếp
+    for (const [key, phrase] of Object.entries(PHRASE_SEQUENCES)) {
+      // So sánh sau khi bỏ dấu
+      const normKey = key.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/Đ/g,'D');
+      const normInput = keyRaw.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/Đ/g,'D');
+      if (normInput === normKey || normInput.startsWith(normKey) && normKey.length >= 4) {
+        return { key, phrase, sequence: words };
+      }
+    }
+
+    // Tìm câu chứa chuỗi từ ngắn nhất (min 2 từ)
+    if (words.length >= 2) {
+      const prefix = words.slice(0, 2).join(' ')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/Đ/g,'D');
+      for (const [key, phrase] of Object.entries(PHRASE_SEQUENCES)) {
+        const normKey = key.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/Đ/g,'D');
+        if (normKey.startsWith(prefix) && prefix.length >= 4) {
+          return null; // đang gõ dở, chưa hiện
+        }
+        if (normKey === prefix && prefix.length >= 4) {
+          return { key, phrase, sequence: words };
+        }
+      }
+    }
+    return null;
+  }
+
+  function getMatched() { return _matchedPhrase; }
+
+  function tryMatch(buffer) {
+    const match = checkBuffer(buffer);
+    if (match && match.phrase !== _matchedPhrase) {
+      _matchedPhrase = match.phrase;
+      _matchedKey    = match.key;
+      return match;
+    }
+    if (!match) {
+      _matchedPhrase = null;
+      _matchedKey    = null;
+    }
+    return null;
+  }
+
+  function reset() { _matchedPhrase = null; _matchedKey = null; }
+
+  return { tryMatch, reset, getMatched };
+})();
+
+// Hiện popup câu hoàn chỉnh
+function showPhraseMatch(matchResult) {
+  const { phrase, sequence, key } = matchResult;
+
+  // Bar nhỏ
+  const bar = document.getElementById('phraseMatchBar');
+  const barText = document.getElementById('phraseMatchText');
+  barText.textContent = phrase;
+  bar.classList.add('show');
+  bar.dataset.phrase = phrase;
+
+  // Popup lớn
+  const popup = document.getElementById('phraseMatchPopup');
+  document.getElementById('popupPhraseText').textContent = phrase;
+
+  // Hiện trình tự chữ cái
+  const seqEl = document.getElementById('popupSequence');
+  const letters = key.split(' ');
+  seqEl.innerHTML = letters.map((word, wi) => {
+    const chips = word.split('').map((ch, ci) =>
+      `<span class="popup-sign-chip matched">${ch}</span>`
+    ).join('');
+    return chips + (wi < letters.length - 1 ? '<span class="popup-arrow">→</span>' : '');
+  }).join('<span class="popup-arrow">·</span>');
+
+  popup.style.display = 'block';
+  popup.dataset.phrase = phrase;
+
+  // Tự ẩn popup sau 8 giây, giữ bar
+  clearTimeout(popup._closeTimer);
+  popup._closeTimer = setTimeout(() => {
+    popup.style.display = 'none';
+  }, 8000);
+
+  // Rung nhẹ (nếu mobile)
+  if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+}
+
+function dismissPhraseMatch() {
+  document.getElementById('phraseMatchBar').classList.remove('show');
+  document.getElementById('phraseMatchPopup').style.display = 'none';
+}
+
+function speakMatchedPhrase() {
+  const popup = document.getElementById('phraseMatchPopup');
+  const bar   = document.getElementById('phraseMatchBar');
+  const phrase = popup.dataset.phrase || bar.dataset.phrase;
+  if (!phrase) return;
+  STATE.letterBuffer = phrase.split('');
+  STATE.currentText  = phrase;
+  updateWordDisplay();
+  addToHistory(phrase);
+  showWave();
+  Speech.speak(phrase, () => {}, () => { hideWave(); });
+  dismissPhraseMatch();
+}
+
+// Hook vào addLetterToBuffer để kiểm tra câu sau mỗi lần thêm chữ
+const _origAddLetter = addLetterToBuffer;
+window.addLetterToBuffer = function(letterId, confidence) {
+  _origAddLetter(letterId, confidence);
+  // Kiểm tra câu hoàn chỉnh
+  setTimeout(() => {
+    const match = PhraseDetector.tryMatch(STATE.letterBuffer);
+    if (match) showPhraseMatch(match);
+  }, 100);
+};
+
+// Reset phrase detector khi xoá hết
+const _origClear = clearOutput;
+window.clearOutput = function() {
+  _origClear();
+  PhraseDetector.reset();
+  dismissPhraseMatch();
+};
+
+// ══════════════════════════════════════════════════════════════
+// SIGN GUIDE – Gợi ý thao tác thủ ngữ
+// ══════════════════════════════════════════════════════════════
+
+const SIGN_GUIDE_DATA = {
+  phrases: [
+    { phrase: 'Xin chào!',        key: 'XIN CHAO',      signs: ['X','I','N',' ','C','H','A','O'],      emoji: '👋', hint: 'X→I→N → C→H→A→O' },
+    { phrase: 'Cảm ơn!',          key: 'CAM ON',         signs: ['C','A','M',' ','O','N'],              emoji: '🙏', hint: 'C→A→M → O→N' },
+    { phrase: 'Xin lỗi!',         key: 'XIN LOI',        signs: ['X','I','N',' ','L','O','I'],          emoji: '😔', hint: 'X→I→N → L→O→I' },
+    { phrase: 'Tạm biệt!',        key: 'TAM BIET',       signs: ['T','A','M',' ','B','I','E','T'],      emoji: '✋', hint: 'T→A→M → B→I→E→T' },
+    { phrase: 'Dạ vâng!',         key: 'DA VANG',        signs: ['D','A',' ','V','A','N','G'],          emoji: '✅', hint: 'D→A → V→A→N→G' },
+    { phrase: 'Không hiểu',       key: 'KHONG HIEU',     signs: ['K','H','O','N','G',' ','H','I','E','U'], emoji: '❓', hint: 'KHONG → HIEU' },
+    { phrase: 'Bạn khỏe không?',  key: 'BAN KHOE',       signs: ['B','A','N',' ','K','H','O','E'],      emoji: '🤝', hint: 'B→A→N → K→H→O→E' },
+    { phrase: 'Vui gặp bạn!',     key: 'VUI GAP BAN',   signs: ['V','U','I',' ','G','A','P',' ','B','A','N'], emoji: '😊', hint: 'VUI → GAP → BAN' },
+  ],
+  daily: [
+    { phrase: 'Tôi cần nước',     key: 'NUOC',           signs: ['N','U','O','C'],                      emoji: '💧', hint: 'N→U→O→C' },
+    { phrase: 'Cần ăn',           key: 'AN',             signs: ['A','N'],                              emoji: '🍽️', hint: 'A→N' },
+    { phrase: 'Mệt rồi',          key: 'MET',            signs: ['M','E','T'],                          emoji: '😴', hint: 'M→E→T' },
+    { phrase: 'Đau',              key: 'DAU',             signs: ['D','A','U'],                          emoji: '🤕', hint: 'D→A→U' },
+    { phrase: 'Ổn rồi',           key: 'ON',             signs: ['O','N'],                              emoji: '👍', hint: 'O→N' },
+    { phrase: 'Nhà tôi',          key: 'NHA',            signs: ['N','H','A'],                          emoji: '🏠', hint: 'N→H→A' },
+    { phrase: 'Điện thoại',       key: 'DIEN THOAI',    signs: ['D','I','E','N',' ','T','H','O','A','I'], emoji: '📱', hint: 'DIEN → THOAI' },
+    { phrase: 'Tiền',             key: 'TIEN',           signs: ['T','I','E','N'],                      emoji: '💰', hint: 'T→I→E→N' },
+  ],
+  help: [
+    { phrase: 'Cần giúp đỡ!',    key: 'CAN GIUP',       signs: ['C','A','N',' ','G','I','U','P'],      emoji: '🆘', hint: 'C→A→N → G→I→U→P' },
+    { phrase: 'Gọi cấp cứu!',    key: 'GOI CAP CUU',    signs: ['G','O','I',' ','C','A','P',' ','C','U','U'], emoji: '🚑', hint: 'GOI → CAP → CUU' },
+    { phrase: 'Tôi bị lạc',      key: 'LAC DUONG',      signs: ['L','A','C',' ','D','U','O','N','G'],  emoji: '🧭', hint: 'LAC → DUONG' },
+    { phrase: 'Khiếm thính',      key: 'KHIEM THINH',    signs: ['K','H','I','E','M',' ','T','H','I','N','H'], emoji: '👂', hint: 'KHIEM → THINH' },
+    { phrase: 'Viết ra giấy',     key: 'VIET RA',        signs: ['V','I','E','T',' ','R','A'],          emoji: '✍️', hint: 'V→I→E→T → R→A' },
+    { phrase: 'Nói chậm lại',     key: 'NOI CHAM',       signs: ['N','O','I',' ','C','H','A','M'],      emoji: '🐢', hint: 'N→O→I → C→H→A→M' },
+  ],
+  alphabet: null, // dùng bảng chữ cái từ PHRASE_BANK
+};
+
+// Mô tả hướng dẫn tay cho từng chữ cái
+const LETTER_HAND_HINTS = {
+  'A': 'Nắm tay, ngón cái bên cạnh',
+  'B': 'Bốn ngón thẳng, ngón cái gập vào',
+  'C': 'Bàn tay hình chữ C cong',
+  'D': 'Ngón trỏ thẳng, các ngón khác tạo vòng',
+  'E': 'Các ngón cong hướng vào lòng bàn tay',
+  'G': 'Ngón trỏ & cái chỉ sang một bên',
+  'H': 'Ngón trỏ & giữa nằm ngang',
+  'I': 'Ngón út thẳng, các ngón khác nắm',
+  'K': 'Ngón trỏ & giữa duỗi, ngón cái chạm ngón giữa',
+  'L': 'Ngón cái & trỏ tạo góc L',
+  'M': 'Ba ngón đặt lên ngón cái gập',
+  'N': 'Hai ngón đặt lên ngón cái gập',
+  'O': 'Các ngón tạo vòng tròn chữ O',
+  'P': 'Ngón trỏ chỉ xuống, ngón cái & giữa chạm nhau',
+  'R': 'Ngón trỏ & giữa giao chéo nhau',
+  'S': 'Nắm tay, ngón cái đặt trước các ngón',
+  'T': 'Ngón cái kẹp giữa ngón trỏ & giữa',
+  'U': 'Ngón trỏ & giữa thẳng sát nhau',
+  'V': 'Ngón trỏ & giữa xòe hình V',
+  'W': 'Ngón trỏ, giữa & áp út xòe',
+  'X': 'Ngón trỏ cong hình móc câu',
+  'Y': 'Ngón cái & út xòe, các ngón khác nắm',
+};
+
+let _signGuideOpen = false;
+let _signGuideTab  = 'phrases';
+
+function toggleSignGuide() {
+  _signGuideOpen = !_signGuideOpen;
+  const body    = document.getElementById('signGuideBody');
+  const toggle  = document.getElementById('signGuideToggle');
+  body.classList.toggle('open', _signGuideOpen);
+  toggle.classList.toggle('open', _signGuideOpen);
+  if (_signGuideOpen) renderSignGuideContent(_signGuideTab);
+}
+
+function switchSignGuideTab(tab, btn) {
+  _signGuideTab = tab;
+  document.querySelectorAll('.sign-guide-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSignGuideContent(tab);
+}
+
+function renderSignGuideContent(tab) {
+  const el = document.getElementById('signGuideContent');
+  if (tab === 'alphabet') {
+    renderAlphabetGuide(el);
+  } else {
+    renderPhraseGuide(el, SIGN_GUIDE_DATA[tab]);
+  }
+}
+
+function renderPhraseGuide(el, data) {
+  if (!data) return;
+  el.innerHTML = `<div class="phrase-guide-grid">${data.map(item => `
+    <div class="phrase-guide-card" onclick="tryPhrase('${item.key.replace(/'/g,"\\'")}','${item.phrase.replace(/'/g,"\\'")}')">
+      <div class="pgc-phrase">${item.emoji} ${item.phrase}</div>
+      <div class="pgc-sequence">
+        ${item.signs.map(s => s === ' '
+          ? `<span class="pgc-arrow">→</span>`
+          : `<span class="pgc-sign">${s}</span>`
+        ).join('')}
+      </div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:5px">💡 ${item.hint}</div>
+      <button class="pgc-try-btn">▶ Phát câu này</button>
+    </div>
+  `).join('')}</div>`;
+}
+
+function renderAlphabetGuide(el) {
+  const letters = 'ABCDEFGHIKLMNOPRST UVWXY'.split('').filter(c => c.trim());
+  el.innerHTML = `
+    <p style="font-size:11px;color:rgba(255,255,255,0.35);margin-bottom:8px">Nhấn vào chữ cái để thêm vào ô ghép chữ</p>
+    <div class="single-sign-grid">
+      ${letters.map(l => `
+        <div class="single-sign-card" onclick="insertLetter('${l}')" title="${LETTER_HAND_HINTS[l]||''}">
+          <span class="ssc-hand">🤚</span>
+          <span class="ssc-letter">${l}</span>
+          <span class="ssc-hint">${(LETTER_HAND_HINTS[l]||'').split(',')[0]||''}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function tryPhrase(key, phrase) {
+  // Phát câu và hiện trong ô ghép
+  quickSpeak(phrase);
+  showToast('▶ Đang phát: ' + phrase);
+}
+
 window.App = App;
+
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// MODE SWITCHER — Chế độ 1: Thủ ngữ chữ cái | Chế độ 2: Cử chỉ hành động
+// ══════════════════════════════════════════════════════════════
+
+let CURRENT_MODE = 1; // 1 = letter spelling, 2 = gesture action
+
+// Danh sách element của từng chế độ
+const MODE1_ELEMENTS = ['outputSection','phraseMatchBar','phraseMatchPopup','signGuideSection','keyboardSection','voiceSection','nameSection','quickSection','suggestSection'];
+const MODE2_ELEMENTS = ['gestureActionPanel'];
+
+function switchMode(mode) {
+  if (CURRENT_MODE === mode) return;
+  CURRENT_MODE = mode;
+
+  // Cập nhật button state
+  document.getElementById('modeBtn1').classList.toggle('active', mode === 1);
+  document.getElementById('modeBtn2').classList.toggle('active', mode === 2);
+
+  // Nếu đang nhận dạng → tắt
+  if (STATE.detecting) toggleDetection();
+
+  if (mode === 1) {
+    // Chế độ 1: ghép chữ cái
+    showEl('outputSection');
+    showEl('phraseMatchBar');
+    showEl('signGuideSection');
+    showEl('keyboardSection');
+    showEl('voiceSection');
+    showEl('nameSection');
+    showEl('quickSection');
+    showEl('suggestSection');
+    hideEl('gestureActionPanel');
+
+    // Override App callbacks để ghép chữ cái
+    App.onGestureDetected = App._letterMode_onGestureDetected;
+    App.onNoHand          = App._letterMode_onNoHand;
+
+    setStatus('camera', 'Chế độ thủ ngữ chữ cái – giữ từng cử chỉ để ghép');
+    showToast('🔤 Chế độ ghép chữ cái');
+  } else {
+    // Chế độ 2: cử chỉ hành động
+    hideEl('outputSection');
+    hideEl('phraseMatchBar');
+    hideEl('phraseMatchPopup');
+    hideEl('keyboardSection');
+    hideEl('voiceSection');
+    hideEl('nameSection');
+    hideEl('quickSection');
+    hideEl('suggestSection');
+    showEl('gestureActionPanel');
+    showEl('signGuideSection');
+
+    // Override App callbacks cho nhận dạng cử chỉ
+    App.onGestureDetected = App._actionMode_onGestureDetected;
+    App.onNoHand          = App._actionMode_onNoHand;
+
+    renderGestureRefGrid('greet');
+    setStatus('camera', 'Chế độ cử chỉ hành động – giơ tay để nhận dạng');
+    showToast('🤙 Chế độ nhận dạng cử chỉ');
+  }
+}
+
+function showEl(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = '';
+}
+function hideEl(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+}
+
+// Map IDs HTML sang IDs thực tế — tất cả section đã có id trực tiếp
+document.addEventListener('DOMContentLoaded', () => {
+  // Render lần đầu
+  renderGestureRefGrid('greet');
+});
+
+// ══════════════════════════════════════════════════════════════
+// GESTURE ACTION DATA — Cử chỉ theo từng chủ đề giao tiếp
+// ══════════════════════════════════════════════════════════════
+
+const GESTURE_ACTIONS = {
+  greet: [
+    { emoji:'👋', phrase:'Xin chào!',        gesture:'WAVE',     hint:'Xòe 5 ngón tay',           desc:'Mở rộng toàn bộ bàn tay trước camera' },
+    { emoji:'👍', phrase:'Rất tốt / Đồng ý', gesture:'THUMBS_UP',hint:'Ngón cái hướng lên',        desc:'Nắm tay, giơ ngón cái thẳng lên trên' },
+    { emoji:'👌', phrase:'Dạ vâng / Ổn rồi', gesture:'YES',      hint:'Tạo vòng O ngón cái+trỏ',  desc:'Đầu ngón cái chạm đầu ngón trỏ thành vòng' },
+    { emoji:'✌️', phrase:'Bạn khỏe không?',  gesture:'HOW_ARE',  hint:'Ngón trỏ+giữa mở chữ V',  desc:'Hai ngón trỏ và giữa thẳng, xòe rộng' },
+    { emoji:'❤️', phrase:'Tôi yêu bạn!',     gesture:'LOVE',     hint:'Cái+trỏ+út mở (ILY sign)',desc:'Ngón cái, trỏ và út mở, giữa+nhẫn gập' },
+    { emoji:'✊', phrase:'Cần giúp đỡ!',      gesture:'HELP',     hint:'Nắm đấm hoàn toàn',        desc:'Nắm chặt tất cả 5 ngón tay vào lòng bàn tay' },
+  ],
+  daily: [
+    { emoji:'💧', phrase:'Tôi cần nước uống', gesture:'WATER',    hint:'Chỉ ngón út thẳng',        desc:'Chỉ ngón út duỗi thẳng, 4 ngón còn lại gập' },
+    { emoji:'🍽️', phrase:'Tôi muốn ăn',      gesture:'EAT',      hint:'3 ngón: trỏ+giữa+nhẫn',   desc:'Ba ngón trỏ, giữa, nhẫn mở; cái và út gập' },
+    { emoji:'🚻', phrase:'Nhà vệ sinh đâu?', gesture:'TOILET',   hint:'Ngón trỏ+giữa chỉ xuống', desc:'Ngón trỏ và giữa thẳng, chỉ hướng xuống dưới' },
+    { emoji:'📱', phrase:'Điện thoại tôi',    gesture:'PHONE',    hint:'Ngón cái+út mở (gọi điện)',desc:'Ngón cái và út mở rộng, 3 ngón giữa gập lại' },
+    { emoji:'⏰', phrase:'Mấy giờ rồi?',      gesture:'TIME',     hint:'Ngón cái+trỏ hình L lên',  desc:'Ngón cái và trỏ mở tạo góc L, trỏ hướng lên' },
+    { emoji:'🛑', phrase:'Dừng lại!',          gesture:'STOP',     hint:'Lòng bàn tay phẳng ra',    desc:'Bốn ngón mở ngang, cái gập, đẩy bàn tay ra phía trước' },
+  ],
+  emotion: [
+    { emoji:'😊', phrase:'Tôi vui!',           gesture:'WAVE',     hint:'Xòe 5 ngón tay',           desc:'Bàn tay mở rộng hoàn toàn' },
+    { emoji:'👍', phrase:'Rất tốt!',            gesture:'THUMBS_UP',hint:'Ngón cái lên',              desc:'Nắm tay, ngón cái hướng lên trên' },
+    { emoji:'👎', phrase:'Không tốt',           gesture:'THUMBS_DOWN',hint:'Ngón cái xuống',          desc:'Nắm tay, ngón cái hướng xuống dưới' },
+    { emoji:'✊', phrase:'Tôi không thích',     gesture:'HELP',     hint:'Nắm đấm hoàn toàn',        desc:'Nắm chặt tất cả ngón tay' },
+    { emoji:'❤️', phrase:'Tôi yêu bạn!',       gesture:'LOVE',     hint:'Cái+trỏ+út mở (ILY)',     desc:'Ngón cái, trỏ và út mở; giữa+nhẫn gập' },
+    { emoji:'👌', phrase:'Tôi ổn!',             gesture:'YES',      hint:'Tạo vòng O ngón cái+trỏ',  desc:'Đầu ngón cái chạm đầu ngón trỏ thành vòng tròn' },
+  ],
+  medical: [
+    { emoji:'✊', phrase:'Tôi đang đau',        gesture:'HELP',     hint:'Nắm đấm',                  desc:'Nắm chặt bàn tay, giơ lên' },
+    { emoji:'🤙', phrase:'Gọi cấp cứu ngay!',  gesture:'PHONE',    hint:'Ngón cái+út mở (gọi điện)',desc:'Ngón cái và út mở rộng như cầm điện thoại' },
+    { emoji:'☝️', phrase:'Tôi cần bác sĩ',     gesture:'DOCTOR',   hint:'Ngón cái+trỏ hình L xuống',desc:'Ngón cái và trỏ mở, trỏ hướng xuống dưới' },
+    { emoji:'💊', phrase:'Tôi cần thuốc',       gesture:'EAT',      hint:'3 ngón: trỏ+giữa+nhẫn',   desc:'Ba ngón trỏ, giữa, nhẫn mở' },
+    { emoji:'🛑', phrase:'Dừng! Tôi dị ứng',   gesture:'STOP',     hint:'Lòng bàn tay phẳng ra',    desc:'Bốn ngón mở ngang, đẩy bàn tay ra trước' },
+    { emoji:'✌️', phrase:'Đo nhiệt độ cho tôi',gesture:'HOW_ARE',  hint:'Ngón trỏ+giữa mở chữ V',  desc:'Hai ngón trỏ và giữa thẳng, xòe rộng' },
+  ],
+  help: [
+    { emoji:'✊', phrase:'Cần giúp đỡ ngay!',  gesture:'HELP',     hint:'Nắm đấm hoàn toàn',        desc:'Nắm chặt bàn tay và giơ lên' },
+    { emoji:'🛑', phrase:'Dừng lại! Nguy hiểm',gesture:'STOP',     hint:'Lòng bàn tay phẳng ra',    desc:'Bốn ngón mở ngang, đẩy mạnh ra trước' },
+    { emoji:'📱', phrase:'Gọi điện giúp tôi',  gesture:'PHONE',    hint:'Ngón cái+út mở',            desc:'Ngón cái và út mở rộng như cầm điện thoại' },
+    { emoji:'👋', phrase:'Tôi khiếm thính',    gesture:'WAVE',     hint:'Xòe 5 ngón tay',           desc:'Mở toàn bộ bàn tay, vẫy nhẹ' },
+    { emoji:'✌️', phrase:'Viết ra giúp tôi',   gesture:'HOW_ARE',  hint:'Ngón trỏ+giữa mở chữ V',  desc:'Hai ngón trỏ và giữa mở rộng hình V' },
+    { emoji:'👌', phrase:'Tôi hiểu rồi',        gesture:'YES',      hint:'Tạo vòng O ngón cái+trỏ',  desc:'Đầu ngón cái chạm đầu ngón trỏ thành vòng' },
+  ],
+  direction: [
+    { emoji:'☝️', phrase:'Đi thẳng',           gesture:'FORWARD',  hint:'Ngón trỏ chỉ thẳng lên',   desc:'Chỉ ngón trỏ thẳng đứng, hướng lên trên' },
+    { emoji:'👈', phrase:'Rẽ trái',             gesture:'LEFT',     hint:'Ngón trỏ chỉ sang trái',   desc:'Chỉ ngón trỏ sang bên trái' },
+    { emoji:'👉', phrase:'Rẽ phải',             gesture:'RIGHT',    hint:'Ngón trỏ chỉ sang phải',   desc:'Chỉ ngón trỏ sang bên phải' },
+    { emoji:'👇', phrase:'Đi xuống tầng dưới', gesture:'DOWN',     hint:'Ngón trỏ chỉ xuống',       desc:'Chỉ ngón trỏ thẳng hướng xuống dưới' },
+    { emoji:'🛑', phrase:'Dừng lại / Đứng đây',gesture:'STOP',     hint:'Lòng bàn tay phẳng ra',    desc:'Bốn ngón mở ngang, đẩy bàn tay ra trước mặt' },
+    { emoji:'👋', phrase:'Qua đây với tôi',    gesture:'WAVE',     hint:'Xòe 5 ngón tay',           desc:'Mở rộng bàn tay hướng về phía người kia' },
+  ],
+};
+
+let _currentGestureAction = null;
+let _gestureActionTopic = 'greet';
+
+// ══════════════════════════════════════════════════════════════
+// GESTURE ACTION ENGINE — Rule-based, dùng MediaPipe landmarks
+// KHÔNG dùng ML model chữ cái — phân tích trực tiếp hình tay
+// ══════════════════════════════════════════════════════════════
+const GestureActionEngine = (() => {
+
+  // MediaPipe hand landmark indices
+  // 0=wrist, 1-4=thumb, 5-8=index, 9-12=middle, 13-16=ring, 17-20=pinky
+  const W=0, T1=1,T2=2,T3=3,T4=4,
+        I1=5,I2=6,I3=7,I4=8,
+        M1=9,M2=10,M3=11,M4=12,
+        R1=13,R2=14,R3=15,R4=16,
+        P1=17,P2=18,P3=19,P4=20;
+
+  // ── Helpers ─────────────────────────────────────────────────
+
+  // Khoảng cách Euclidean 2D giữa 2 điểm
+  function dist(a, b) {
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+
+  // Ngón tay có đang duỗi thẳng không?
+  // So sánh tip (đầu ngón) với pip (khớp giữa) so với mcp (gốc ngón)
+  function fingerExtended(lm, tip, pip, mcp) {
+    // tip phải cao hơn (y nhỏ hơn trong ảnh lật dọc) pip đáng kể
+    return lm[tip].y < lm[pip].y - 0.03;
+  }
+
+  // Ngón cái có duỗi sang ngang không?
+  function thumbExtended(lm) {
+    return lm[T4].x < lm[T2].x - 0.04 || lm[T4].x > lm[T2].x + 0.04 ||
+           dist(lm[T4], lm[I1]) > 0.12;
+  }
+
+  // Kiểm tra 5 ngón: [thumb, index, middle, ring, pinky]
+  function fingers(lm) {
+    return [
+      thumbExtended(lm),
+      fingerExtended(lm, I4, I2, I1),
+      fingerExtended(lm, M4, M2, M1),
+      fingerExtended(lm, R4, R2, R1),
+      fingerExtended(lm, P4, P2, P1),
+    ];
+  }
+
+  // Bàn tay hướng lên (palm up) hay xuống
+  function palmFacing(lm) {
+    // wrist vs middle_mcp để đoán hướng bàn tay
+    const wy = lm[W].y, my = lm[M1].y;
+    return my < wy ? 'up' : 'down';
+  }
+
+  // Góc của ngón trỏ (hướng chỉ)
+  function indexAngle(lm) {
+    const dx = lm[I4].x - lm[I1].x;
+    const dy = lm[I4].y - lm[I1].y;
+    return Math.atan2(dy, dx) * 180 / Math.PI;
+  }
+
+  // Wrist nằm bên nào so với ngón trỏ
+  function wristBelowIndex(lm) {
+    return lm[W].y > lm[I1].y;
+  }
+
+  // ── Luật nhận dạng từng cử chỉ ─────────────────────────────
+  // Trả về { gesture, topic, idx, confidence } hoặc null
+
+  function detect(lm) {
+    const f = fingers(lm);
+    const [fT, fI, fM, fR, fP] = f;
+    const extCount = f.filter(Boolean).length;
+
+    // ---------- GREET ----------
+
+    // 1. THUMBS_UP (👍 Tốt!) — ngón cái lên, 4 ngón còn lại nắm
+    if (fT && !fI && !fM && !fR && !fP && lm[T4].y < lm[T2].y - 0.06) {
+      return { gesture:'THUMBS_UP', topic:'greet', idx:1, confidence:92 };
+    }
+
+    // 2. THUMBS_DOWN (👎 Không tốt) — ngón cái xuống
+    if (!fI && !fM && !fR && !fP && lm[T4].y > lm[T2].y + 0.06) {
+      return { gesture:'THUMBS_DOWN', topic:'emotion', idx:2, confidence:90 };
+    }
+
+    // 3. OPEN_HAND / WAVE (✋ Xin chào) — tất cả 5 ngón mở
+    if (fT && fI && fM && fR && fP) {
+      return { gesture:'WAVE', topic:'greet', idx:0, confidence:88 };
+    }
+
+    // 4. ILY — ngón cái+trỏ+út mở, giữa+nhẫn gập (I Love You)
+    if (fT && fI && !fM && !fR && fP) {
+      return { gesture:'LOVE', topic:'emotion', idx:4, confidence:91 };
+    }
+
+    // 5. VICTORY/V (✌️ Bạn khỏe không) — trỏ+giữa mở, còn lại gập
+    if (!fT && fI && fM && !fR && !fP) {
+      const spread = dist(lm[I4], lm[M4]);
+      if (spread > 0.06) {
+        return { gesture:'HOW_ARE', topic:'greet', idx:3, confidence:87 };
+      }
+    }
+
+    // 6. POINT_UP (☝️ Đi thẳng/Hướng dẫn) — chỉ ngón trỏ thẳng lên
+    if (!fT && fI && !fM && !fR && !fP) {
+      const ang = indexAngle(lm);
+      if (ang < -60 && ang > -120) {
+        return { gesture:'FORWARD', topic:'direction', idx:0, confidence:89 };
+      }
+      // Ngón trỏ ngang → trái/phải
+      if (ang > -30 && ang < 30) {
+        return { gesture:'RIGHT', topic:'direction', idx:2, confidence:86 };
+      }
+      if (ang > 150 || ang < -150) {
+        return { gesture:'LEFT', topic:'direction', idx:1, confidence:86 };
+      }
+      // Ngón trỏ xuống
+      if (ang > 60 && ang < 120) {
+        return { gesture:'DOWN', topic:'direction', idx:3, confidence:86 };
+      }
+    }
+
+    // 7. STOP — lòng bàn tay đẩy ra (5 ngón mở, palm facing out + wrist thấp)
+    // Được phân biệt với WAVE bởi vị trí: tay phẳng ngang, wrist thấp hơn ngón
+    if (fI && fM && fR && fP && !fT && wristBelowIndex(lm)) {
+      return { gesture:'STOP', topic:'direction', idx:4, confidence:85 };
+    }
+
+    // 8. OK/CIRCLE (👌 Ổn) — ngón cái+trỏ tạo vòng O, 3 ngón kia thẳng
+    {
+      const tipDist = dist(lm[T4], lm[I4]);
+      if (tipDist < 0.06 && fM && fR && fP) {
+        return { gesture:'YES', topic:'greet', idx:2, confidence:88 };
+      }
+    }
+
+    // 9. FIST (✊ Cần giúp / xin lỗi) — nắm tay, không có ngón nào mở
+    if (!fT && !fI && !fM && !fR && !fP) {
+      return { gesture:'HELP', topic:'help', idx:0, confidence:84 };
+    }
+
+    // 10. CALL ME (🤙 Điện thoại) — ngón cái+út mở, 3 giữa gập
+    if (fT && !fI && !fM && !fR && fP) {
+      return { gesture:'PHONE', topic:'daily', idx:3, confidence:90 };
+    }
+
+    // 11. POINTING_DOWN (👇 Nhà vệ sinh / nơi nào đó) — trỏ+giữa xuống
+    if (!fT && fI && fM && !fR && !fP) {
+      const ang = indexAngle(lm);
+      if (ang > 60 && ang < 120) {
+        return { gesture:'TOILET', topic:'daily', idx:2, confidence:85 };
+      }
+    }
+
+    // 12. THREE_FINGERS (ba ngón: trỏ+giữa+nhẫn mở) → Cần ăn
+    if (!fT && fI && fM && fR && !fP) {
+      return { gesture:'EAT', topic:'daily', idx:1, confidence:83 };
+    }
+
+    // 13. PINKY_ONLY (💧 Nước) — chỉ ngón út mở
+    if (!fT && !fI && !fM && !fR && fP) {
+      return { gesture:'WATER', topic:'daily', idx:0, confidence:82 };
+    }
+
+    // 14. THUMB+INDEX L-shape (L = chỉ thời gian) — cái+trỏ tạo chữ L
+    if (fT && fI && !fM && !fR && !fP) {
+      const thumbAngle = Math.atan2(
+        lm[T4].y - lm[W].y,
+        lm[T4].x - lm[W].x
+      ) * 180 / Math.PI;
+      // Khi trỏ hướng lên và cái sang ngang → L-shape
+      const angI = indexAngle(lm);
+      if (angI < -50) {
+        return { gesture:'TIME', topic:'daily', idx:4, confidence:83 };
+      }
+      // Trỏ+cái hướng xuống → Bác sĩ
+      if (angI > 50) {
+        return { gesture:'DOCTOR', topic:'medical', idx:2, confidence:81 };
+      }
+    }
+
+    return null;
+  }
+
+  // ── Rolling window để ổn định ────────────────────────────────
+  const HISTORY_LEN = 4;
+  let _history = [];
+  let _lastResult = null;
+
+  function classifyWithSmoothing(lm) {
+    const raw = detect(lm);
+    const newGesture = raw ? raw.gesture : null;
+
+    // Reset lịch sử ngay khi phát hiện cử chỉ mới → phản hồi nhanh hơn
+    if (_history.length > 0 && _history[_history.length - 1] !== null && newGesture !== null && newGesture !== _history[_history.length - 1]) {
+      _history = [];
+    }
+
+    _history.push(newGesture);
+    if (_history.length > HISTORY_LEN) _history.shift();
+
+    // Vote
+    const votes = {};
+    for (const g of _history) {
+      if (!g) continue;
+      votes[g] = (votes[g] || 0) + 1;
+    }
+    let best = null, bestCount = 0;
+    for (const [g, c] of Object.entries(votes)) {
+      if (c > bestCount) { best = g; bestCount = c; }
+    }
+
+    // Cần ít nhất 3/4 frame đồng thuận
+    if (!best || bestCount < 3) return null;
+
+    // Tìm action tương ứng
+    if (!raw || raw.gesture !== best) return null;
+    return raw;
+  }
+
+  function reset() { _history = []; _lastResult = null; }
+
+  return { classifyWithSmoothing, reset };
+})();
+
+// ── Hook vào MPEngine: chèn raw landmarks vào chế độ 2 ──────────
+// Patch processFrame để gửi raw landmarks cho GestureActionEngine
+(function patchMPEngineForActionMode() {
+  const _origSetDetecting = MPEngine.setDetecting.bind(MPEngine);
+
+  // Ghi đè callback trong MPEngine khi chế độ 2 đang hoạt động
+  // Cách an toàn: monkey-patch App.onGestureDetected KHÔNG đủ vì MPEngine
+  // gọi classifyGesture (ML) trước. Ta cần intercept ở tầng landmarks.
+  //
+  // Giải pháp: override classifyGesture khi mode 2 — thay ML bằng rule-based
+  const _origClassify = window.classifyGesture;
+
+  window.classifyGesture = function(landmarks) {
+    if (CURRENT_MODE === 2) {
+      // Chế độ 2: dùng rule-based engine
+      const result = GestureActionEngine.classifyWithSmoothing(landmarks);
+      if (result) {
+        // Trả về format giống ML để App.onGestureDetected nhận được
+        return {
+          id:         result.gesture,  // id là tên cử chỉ, không phải chữ cái
+          confidence: result.confidence,
+          _actionResult: result,       // đính kèm full result
+        };
+      }
+      return null;
+    }
+    // Chế độ 1: dùng ML như cũ
+    return _origClassify(landmarks);
+  };
+})();
+
+// ── Render grid gợi ý theo chủ đề ───────────────────────────────
+function renderGestureRefGrid(topic) {
+  _gestureActionTopic = topic;
+  const data = GESTURE_ACTIONS[topic] || [];
+  const grid = document.getElementById('gestureRefGrid');
+  if (!grid) return;
+  grid.innerHTML = data.map((item, idx) => `
+    <div class="gesture-ref-card" id="grc_${topic}_${idx}" onclick="quickSpeakGesture('${item.phrase.replace(/'/g,"\\'")}')">
+      <div class="grc-top">
+        <span class="grc-emoji">${item.emoji}</span>
+        <span class="grc-phrase">${item.phrase}</span>
+      </div>
+      <span class="grc-gesture-name">🤙 ${item.gesture}</span>
+      <div class="grc-hint">✋ ${item.hint}<br><span style="color:rgba(255,255,255,0.2)">${item.desc}</span></div>
+      <button class="grc-speak-mini">▶ Phát</button>
+    </div>
+  `).join('');
+}
+
+function switchGestureTopic(topic, btn) {
+  document.querySelectorAll('.gesture-topic-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGestureRefGrid(topic);
+}
+
+function quickSpeakGesture(phrase) {
+  showWave();
+  Speech.speak(phrase, () => {}, () => { hideWave(); });
+  showToast('🔊 ' + phrase);
+}
+
+function speakGestureResult() {
+  if (!_currentGestureAction) return;
+  quickSpeakGesture(_currentGestureAction.phrase);
+}
+
+// ══════════════════════════════════════════════════════════════
+// APP CALLBACKS — Tách riêng 2 chế độ
+// ══════════════════════════════════════════════════════════════
+App._letterMode_onGestureDetected = App.onGestureDetected;
+App._letterMode_onNoHand          = App.onNoHand;
+
+// Callback chế độ 2 — nhận result từ GestureActionEngine (qua classifyGesture patch)
+App._actionMode_onGestureDetected = function(result) {
+  const now = Date.now();
+  const actionResult = result._actionResult;
+  if (!actionResult) return;
+
+  const topic = actionResult.topic;
+  const item  = GESTURE_ACTIONS[topic]?.[actionResult.idx];
+  if (!item) return;
+
+  // Hiển thị kết quả
+  document.getElementById('gestureResultEmoji').textContent = item.emoji;
+  document.getElementById('gestureResultLabel').textContent = item.phrase;
+  document.getElementById('gestureResultSub').textContent   = `🤙 ${item.gesture} · ${actionResult.confidence}%`;
+  document.getElementById('gestureResultBox').classList.add('matched');
+  document.getElementById('gestureResultSpeakBtn').disabled = false;
+  _currentGestureAction = item;
+
+  // Chuyển tab nếu cần
+  if (topic !== _gestureActionTopic) {
+    const topicLabels = {
+      greet:'Chào hỏi', daily:'Hàng ngày', emotion:'Cảm xúc',
+      medical:'Y tế',   help:'Khẩn cấp',   direction:'Hướng dẫn',
+    };
+    document.querySelectorAll('.gesture-topic-tab').forEach(b => {
+      const active = Object.entries(topicLabels).some(([k,v]) =>
+        k === topic && b.textContent.includes(v));
+      if (active) { b.classList.add('active'); switchGestureTopic(topic, b); }
+      else b.classList.remove('active');
+    });
+  }
+
+  // Highlight card
+  document.querySelectorAll('.gesture-ref-card').forEach(c => c.classList.remove('highlight'));
+  const card = document.getElementById(`grc_${topic}_${actionResult.idx}`);
+  if (card) { card.classList.add('highlight'); }
+
+  // Hold timer → tự phát âm
+  const gestureKey = actionResult.gesture;
+  if (gestureKey !== STATE._lastGestureId) {
+    STATE._lastGestureId    = gestureKey;
+    STATE._gestureHoldStart = now;
+    STATE.lastAddedLetter   = null;
+  } else {
+    const held = (now - STATE._gestureHoldStart) / 1000;
+    updateHoldProgress(Math.min(held / STATE.holdSeconds, 1));
+    if (held >= STATE.holdSeconds && gestureKey !== STATE.lastAddedLetter) {
+      STATE.lastAddedLetter = gestureKey;
+      speakGestureResult();
+      if (navigator.vibrate) navigator.vibrate([40, 20, 40]);
+    }
+  }
+
+  setStatus('found', `Nhận dạng: ${item.phrase}`);
+  clearTimeout(STATE._noHandTimer);
+};
+
+App._actionMode_onNoHand = function() {
+  clearTimeout(STATE._noHandTimer);
+  GestureActionEngine.reset();
+  STATE._noHandTimer = setTimeout(() => {
+    STATE._lastGestureId    = null;
+    STATE._gestureHoldStart = null;
+    STATE.lastAddedLetter   = null;
+    document.getElementById('gestureResultBox').classList.remove('matched');
+    clearHoldProgress();
+  }, 800);
+};
+
+window.switchMode         = switchMode;
+window.switchGestureTopic = switchGestureTopic;
+window.quickSpeakGesture  = quickSpeakGesture;
+window.speakGestureResult = speakGestureResult;
 
 </script>
 
