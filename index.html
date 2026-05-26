@@ -541,7 +541,6 @@ body {
   display: inline-block;
   padding: 2px 9px;
   border-radius: 20px;
-
   font-size: 11px;
   font-weight: 700;
   vertical-align: middle;
@@ -1343,17 +1342,17 @@ body {
 </div>
 
 <!-- ── GỢI Ý THAO TÁC THỦ NGỮ ── -->
-<div class="sign-guide-section" id="signGuideSection">
+<div class="sign-guide-section" id="signGuideSection" style="display:none">
   <div class="sign-guide-header" onclick="toggleSignGuide()">
-    <span class="sign-guide-title">🤟 Gợi ý cử chỉ & câu thủ ngữ <span style="font-size:11px;color:rgba(0,212,255,0.6);font-weight:400">(nhấn để mở)</span></span>
+    <span class="sign-guide-title">🤟 Hướng dẫn làm cử chỉ tay <span style="font-size:11px;color:rgba(0,212,255,0.6);font-weight:400">(nhấn để mở)</span></span>
     <span class="sign-guide-toggle" id="signGuideToggle">▼</span>
   </div>
   <div class="sign-guide-body" id="signGuideBody">
     <div class="sign-guide-tabs">
-      <button class="sign-guide-tab active" onclick="switchSignGuideTab('phrases', this)">💬 Câu chào hỏi</button>
-      <button class="sign-guide-tab" onclick="switchSignGuideTab('daily', this)">📅 Hàng ngày</button>
-      <button class="sign-guide-tab" onclick="switchSignGuideTab('help', this)">🆘 Cần giúp đỡ</button>
-      <button class="sign-guide-tab" onclick="switchSignGuideTab('alphabet', this)">🔤 Bảng chữ</button>
+      <button class="sign-guide-tab active" onclick="switchSignGuideTab('greet_guide', this)">👋 Chào hỏi</button>
+      <button class="sign-guide-tab" onclick="switchSignGuideTab('daily_guide', this)">📅 Hàng ngày</button>
+      <button class="sign-guide-tab" onclick="switchSignGuideTab('emotion_guide', this)">😊 Cảm xúc</button>
+      <button class="sign-guide-tab" onclick="switchSignGuideTab('help_guide', this)">🆘 Khẩn cấp</button>
     </div>
     <div id="signGuideContent"></div>
   </div>
@@ -1721,7 +1720,7 @@ const AdminAuth = (() => {
             </p>
             <div style="display:flex;gap:6px">
               <input type="password" id="adminFptKeyInput"
-                     placeholder="MoN3QaRwXZbK9IUwjqOl8q5EqpMWTrDo"
+                     placeholder="Dán FPT.AI API Key…"
                      value="${(localStorage.getItem('sv_fpt_key')||'')}"
                      style="flex:1;padding:9px 12px;border-radius:9px;border:1.5px solid rgba(0,212,255,0.3);background:rgba(0,212,255,0.05);color:#fff;font-size:13px;outline:none"
               />
@@ -1866,7 +1865,7 @@ const SignKeyboard = (() => {
     { id:'T',  emoji:'👍',  desc:'Ngón cái kẹp giữa ngón trỏ và giữa' },          // T:0.5 I:0 t_tuck
     { id:'V',  emoji:'✌️',  desc:'Ngón trỏ+giữa thẳng, mở rộng hình V' },        // T:0 I:1 M:1 v_spread
     { id:'W',  emoji:'🤲',  desc:'Ngón trỏ+giữa+nhẫn thẳng, ngón cái+út gập' }, // T:0 I:1 M:1 R:1
-    { id:'X',  emoji:'☝️',  desc:'Ngón trỏ cong móc hình chữ X' },                // T:0 I:0.5 x_hook
+    { id:'X',  emoji:'🪝',  desc:'Ngón trỏ cong móc hình chữ X' },                // T:0 I:0.5 x_hook
     // ── Dấu phụ ────────────────────────────────────────────────────────────
     { id:'DẤU_THANH', emoji:'🔢', desc:'Tất cả 5 ngón mở hoàn toàn' },           // all_open
     { id:'DẤU_RÂU',  emoji:'🔡', desc:'Ngón cái+trỏ+giữa thẳng, nhẫn+út gập' }, // three_open
@@ -2680,7 +2679,7 @@ const Speech = (() => {
   // ── Khởi tạo ───────────────────────────────────────────────
   function init() {
     // API key nhúng sẵn – ưu tiên localStorage (cho phép override qua Admin panel)
-    const BUILTIN_KEY = 'MoN3QaRwXZbK9IUwjqOl8q5EqpMWTrDo';
+    const BUILTIN_KEY = 'gECwQq5rZxvpyXDaFpKi0X1TwvWFOWa4';
     fptApiKey = localStorage.getItem('sv_fpt_key') || BUILTIN_KEY;
     _buildVoiceUI();
     return true;
@@ -3022,7 +3021,7 @@ const Speech = (() => {
     wrap.innerHTML = `
       <div class="api-key-row">
         <input type="password" id="fptKeyInput"
-               placeholder="MoN3QaRwXZbK9IUwjqOl8q5EqpMWTrDo"
+               placeholder="Dán FPT.AI API Key vào đây…"
                value="${fptApiKey}"
                style="flex:1;padding:8px 12px;border-radius:8px;
                       border:1.5px solid var(--border);
@@ -3269,10 +3268,12 @@ const MPEngine = (() => {
 
       // ── Nhận dạng cử chỉ ─────────────────────────────────
       if (detecting && typeof App !== 'undefined' && typeof classifyGesture !== 'undefined') {
-        // Chuyển format Tasks → format cũ {x,y,z}[]
-        const lmFormatted = smoothLandmarks(
-          landmarks[0].map(p => ({ x: p.x, y: p.y, z: p.z }))
-        );
+        // Chế độ 2: KHÔNG smooth (GestureActionEngine tự xử lý)
+        // Chế độ 1: smooth như cũ
+        const rawLm = landmarks[0].map(p => ({ x: p.x, y: p.y, z: p.z }));
+        const lmFormatted = (typeof CURRENT_MODE !== 'undefined' && CURRENT_MODE === 2)
+          ? rawLm
+          : smoothLandmarks(rawLm);
         const result2 = classifyGesture(lmFormatted);
         if (result2) {
           result2.handIndex = 0;
@@ -4347,7 +4348,12 @@ function toggleSignGuide() {
   const toggle  = document.getElementById('signGuideToggle');
   body.classList.toggle('open', _signGuideOpen);
   toggle.classList.toggle('open', _signGuideOpen);
-  if (_signGuideOpen) renderSignGuideContent(_signGuideTab);
+  if (_signGuideOpen) {
+    // Mode 2: render hướng dẫn cử chỉ, Mode 1: render cũ
+    const defaultTab = (typeof CURRENT_MODE !== 'undefined' && CURRENT_MODE === 2)
+      ? 'greet_guide' : _signGuideTab;
+    renderSignGuideContent(defaultTab);
+  }
 }
 
 function switchSignGuideTab(tab, btn) {
@@ -4359,6 +4365,12 @@ function switchSignGuideTab(tab, btn) {
 
 function renderSignGuideContent(tab) {
   const el = document.getElementById('signGuideContent');
+  // Tab hướng dẫn cử chỉ (Mode 2)
+  if (tab.endsWith('_guide')) {
+    renderGestureHandGuide(tab);
+    return;
+  }
+  // Tab cũ (Mode 1 — bảng chữ cái)
   if (tab === 'alphabet') {
     renderAlphabetGuide(el);
   } else {
@@ -4409,6 +4421,120 @@ window.App = App;
 
 </script>
 
+
+<script>
+// ── Dữ liệu hướng dẫn cử chỉ tay cho từng chủ đề ──────────────
+const GESTURE_HAND_GUIDE = {
+  greet_guide: [
+    { emoji:'👋', phrase:'Xin chào!', gesture:'WAVE', hand:'🖐️',
+      steps:['Xòe rộng cả 5 ngón tay','Ngón cái cũng mở ra (không gập)','Giơ bàn tay lên ngang mặt'],
+      tip:'Cả 5 ngón đều thẳng — kể cả ngón cái' },
+    { emoji:'👍', phrase:'Tốt lắm / Đồng ý!', gesture:'THUMBS_UP', hand:'👍',
+      steps:['Nắm chặt 4 ngón vào lòng bàn tay','Ngón cái duỗi thẳng hướng LÊN','Cổ tay thấp hơn đầu ngón cái'],
+      tip:'Ngón cái phải cao hơn cổ tay rõ ràng' },
+    { emoji:'👌', phrase:'Dạ vâng / Ổn rồi!', gesture:'YES', hand:'👌',
+      steps:['Chạm đầu ngón cái vào đầu ngón trỏ tạo vòng O','Ba ngón còn lại (giữa, nhẫn, út) duỗi thẳng','Giữ vòng tròn ổn định'],
+      tip:'Cái + Trỏ tạo vòng O — 3 ngón kia mở thẳng' },
+    { emoji:'✌️', phrase:'Bạn khỏe không?', gesture:'HOW_ARE', hand:'✌️',
+      steps:['Duỗi thẳng ngón trỏ và ngón giữa','Xòe hai ngón rộng ra tạo hình V','Gập ngón cái, nhẫn, út vào lòng'],
+      tip:'Hai ngón Trỏ + Giữa mở, xòe rộng như chữ V' },
+    { emoji:'❤️', phrase:'Tôi yêu bạn!', gesture:'LOVE', hand:'🤟',
+      steps:['Duỗi ngón CÁI, ngón TRỎ, ngón ÚT ra','Gập ngón GIỮA và ngón NHẪN vào lòng','Đây là ký hiệu ILY quốc tế'],
+      tip:'Cái + Trỏ + Út mở — Giữa + Nhẫn gập vào' },
+    { emoji:'✊', phrase:'Cần giúp đỡ!', gesture:'HELP', hand:'✊',
+      steps:['Gập tất cả 5 ngón vào lòng bàn tay','Nắm chặt thành quả đấm','Không ngón nào được duỗi ra'],
+      tip:'Nắm đấm hoàn toàn — không có ngón nào mở' },
+    { emoji:'🙋', phrase:'Tôi tên là…', gesture:'MY_NAME', hand:'🖕',
+      steps:['Gập ngón cái, trỏ, nhẫn, út vào lòng','Chỉ ngón GIỮA duỗi thẳng lên trên','Sau khi nhận dạng, app sẽ đọc tên bạn đã nhập ở Chế độ 1'],
+      tip:'Chỉ ngón giữa thẳng đứng = giới thiệu tên. Nhớ nhập tên trước ở tab Thủ ngữ chữ cái!' },
+  ],
+  daily_guide: [
+    { emoji:'💧', phrase:'Tôi cần nước', gesture:'WATER', hand:'🤙',
+      steps:['Gập ngón trỏ, giữa, nhẫn, cái vào lòng','Chỉ ngón ÚT duỗi thẳng ra','Hướng ngón út thẳng lên hoặc ra ngoài'],
+      tip:'Chỉ mỗi ngón út mở — 4 ngón còn lại gập' },
+    { emoji:'🍽️', phrase:'Tôi muốn ăn', gesture:'EAT', hand:'🤚',
+      steps:['Duỗi thẳng 3 ngón: TRỎ, GIỮA, NHẪN','Gập ngón cái và ngón út vào lòng','Giữ 3 ngón thẳng và sát nhau'],
+      tip:'Ba ngón giữa mở — ngón cái + út gập vào' },
+    { emoji:'🚻', phrase:'Nhà vệ sinh đâu?', gesture:'STOP', hand:'🤚',
+      steps:['Duỗi 4 ngón: TRỎ, GIỮA, NHẪN, ÚT song song ngang','Gập ngón cái vào lòng bàn tay','Đẩy bàn tay ra phía trước'],
+      tip:'4 ngón ngang song song — ngón cái gập vào trong' },
+    { emoji:'📱', phrase:'Gọi điện thoại', gesture:'PHONE', hand:'🤙',
+      steps:['Duỗi ngón CÁI và ngón ÚT ra hai bên','Gập 3 ngón giữa (trỏ, giữa, nhẫn) vào lòng','Như đang cầm điện thoại áp vào tai'],
+      tip:'Ngón cái + Út mở — 3 ngón giữa gập' },
+    { emoji:'⏰', phrase:'Mấy giờ rồi?', gesture:'TIME', hand:'👆',
+      steps:['Duỗi ngón CÁI sang ngang','Duỗi ngón TRỎ thẳng LÊN TRÊN','Gập 3 ngón còn lại — tạo góc L'],
+      tip:'Cái ngang + Trỏ thẳng lên — hình chữ L' },
+    { emoji:'🏠', phrase:'Tôi muốn về nhà', gesture:'FORWARD', hand:'☝️',
+      steps:['Chỉ ngón TRỎ duỗi thẳng lên trên','Gập cả 4 ngón còn lại vào lòng','Hướng ngón trỏ thẳng đứng lên'],
+      tip:'Chỉ ngón trỏ thẳng đứng — 4 ngón còn lại gập' },
+  ],
+  emotion_guide: [
+    { emoji:'😊', phrase:'Tôi vui lắm!', gesture:'WAVE', hand:'🖐️',
+      steps:['Mở rộng toàn bộ bàn tay','Tất cả 5 ngón duỗi thẳng — kể cả ngón cái','Vẫy nhẹ nhàng hoặc giữ yên'],
+      tip:'Bàn tay mở hoàn toàn = vui vẻ / hân hoan' },
+    { emoji:'👍', phrase:'Rất tốt!', gesture:'THUMBS_UP', hand:'👍',
+      steps:['Nắm 4 ngón vào lòng bàn tay','Ngón cái thẳng hướng LÊN cao','Cổ tay thấp hơn đầu ngón cái'],
+      tip:'Ngón cái lên cao hơn cổ tay — biểu thị tốt' },
+    { emoji:'👎', phrase:'Không tốt chút nào', gesture:'THUMBS_DOWN', hand:'👎',
+      steps:['Nắm 4 ngón vào lòng bàn tay','Ngón cái thẳng hướng XUỐNG','Cổ tay CAO hơn đầu ngón cái'],
+      tip:'Ngón cái chỉ xuống — ngược với "Tốt lắm"' },
+    { emoji:'✊', phrase:'Tôi không thích', gesture:'HELP', hand:'✊',
+      steps:['Gập chặt tất cả 5 ngón vào lòng','Nắm thành quả đấm','Không ngón nào duỗi ra ngoài'],
+      tip:'Nắm đấm chặt = không thích / không đồng ý' },
+    { emoji:'❤️', phrase:'Tôi yêu bạn!', gesture:'LOVE', hand:'🤟',
+      steps:['Mở ngón CÁI, ngón TRỎ, ngón ÚT','Gập ngón GIỮA và NHẪN vào lòng','Ký hiệu ILY phổ biến toàn cầu'],
+      tip:'Cái + Trỏ + Út = ILY (I Love You)' },
+    { emoji:'👌', phrase:'Tôi ổn, không sao!', gesture:'YES', hand:'👌',
+      steps:['Chạm đầu ngón cái vào đầu ngón trỏ','Tạo thành vòng tròn chữ O nhỏ','Ba ngón còn lại duỗi thẳng'],
+      tip:'Vòng O nhỏ = OK / Tôi ổn' },
+  ],
+  help_guide: [
+    { emoji:'✊', phrase:'Cần giúp đỡ ngay!', gesture:'HELP', hand:'✊',
+      steps:['Nắm chặt tất cả 5 ngón vào lòng bàn tay','Giơ nắm đấm lên cao','Lắc nhẹ hoặc giữ yên để nhận dạng'],
+      tip:'Nắm đấm — giơ lên cao để cầu cứu' },
+    { emoji:'🛑', phrase:'Dừng lại! Nguy hiểm!', gesture:'STOP', hand:'🤚',
+      steps:['Duỗi 4 ngón ngang song song (trỏ, giữa, nhẫn, út)','Gập ngón cái vào lòng','Đẩy mạnh bàn tay về phía trước'],
+      tip:'4 ngón ngang — đẩy ra trước như hiệu lệnh DỪNG' },
+    { emoji:'📱', phrase:'Gọi điện giúp tôi', gesture:'PHONE', hand:'🤙',
+      steps:['Duỗi ngón CÁI và ngón ÚT ra','Gập 3 ngón giữa vào lòng','Đặt điện thoại kề tai'],
+      tip:'Cái + Út mở = gọi điện thoại' },
+    { emoji:'🔇', phrase:'Tôi khiếm thanh (không nói được)', gesture:'MUTE', hand:'✌️',
+      steps:['Duỗi thẳng ngón TRỎ và ngón GIỮA','Giữ hai ngón SÁT nhau (không xòe ra)','Gập ngón cái, nhẫn, út vào lòng'],
+      tip:'Trỏ + Giữa sát nhau thẳng = khiếm thanh (khác với V xòe ra)' },
+    { emoji:'👂', phrase:'Tôi khiếm thính (không nghe được)', gesture:'DEAF', hand:'👆',
+      steps:['Chỉ ngón TRỎ duỗi ra','Xoay bàn tay để trỏ NGANG sang bên','Hướng về phía tai — như chỉ vào tai mình'],
+      tip:'Ngón trỏ chỉ ngang sang bên = khiếm thính (chỉ vào tai)' },
+    { emoji:'👌', phrase:'Tôi đã hiểu rồi', gesture:'YES', hand:'👌',
+      steps:['Chạm đầu ngón cái vào ngón trỏ thành vòng O','Ba ngón còn lại thẳng ra','Gật đầu nhẹ kèm theo'],
+      tip:'Vòng O = đã hiểu / đồng ý' },
+  ],
+};
+
+function renderGestureHandGuide(tab) {
+  const el = document.getElementById('signGuideContent');
+  const data = GESTURE_HAND_GUIDE[tab];
+  if (!data || !el) return;
+  el.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">` +
+    data.map(item => `
+    <div style="background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.1);
+        border-radius:12px;padding:10px 11px;transition:border-color 0.18s,background 0.18s"
+         onmouseenter="this.style.borderColor='rgba(0,212,255,0.4)';this.style.background='rgba(0,212,255,0.08)'"
+         onmouseleave="this.style.borderColor='rgba(255,255,255,0.1)';this.style.background='rgba(255,255,255,0.04)'">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px">
+        <span style="font-size:26px;line-height:1">${item.hand}</span>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#e0f7ff;line-height:1.3">${item.emoji} ${item.phrase}</div>
+          <div style="font-size:9.5px;color:rgba(0,212,255,0.7);margin-top:1px">🤙 ${item.gesture}</div>
+        </div>
+      </div>
+      <ol style="margin:0 0 6px;padding-left:15px">
+        ${item.steps.map(s => `<li style="font-size:10px;color:rgba(255,255,255,0.6);line-height:1.6;margin-bottom:1px">${s}</li>`).join('')}
+      </ol>
+      <div style="font-size:10px;color:#ffd166;background:rgba(255,209,102,0.08);border-radius:6px;padding:4px 7px;line-height:1.4">💡 ${item.tip}</div>
+    </div>`).join('') + `</div>`;
+}
+</script>
+
 <script>
 // ══════════════════════════════════════════════════════════════
 // MODE SWITCHER — Chế độ 1: Thủ ngữ chữ cái | Chế độ 2: Cử chỉ hành động
@@ -4417,8 +4543,8 @@ window.App = App;
 let CURRENT_MODE = 1; // 1 = letter spelling, 2 = gesture action
 
 // Danh sách element của từng chế độ
-const MODE1_ELEMENTS = ['outputSection','phraseMatchBar','phraseMatchPopup','signGuideSection','keyboardSection','voiceSection','nameSection','quickSection','suggestSection'];
-const MODE2_ELEMENTS = ['gestureActionPanel'];
+const MODE1_ELEMENTS = ['outputSection','phraseMatchBar','phraseMatchPopup','keyboardSection','voiceSection','nameSection','quickSection','suggestSection'];
+const MODE2_ELEMENTS = ['gestureActionPanel','signGuideSection'];
 
 function switchMode(mode) {
   if (CURRENT_MODE === mode) return;
@@ -4435,12 +4561,12 @@ function switchMode(mode) {
     // Chế độ 1: ghép chữ cái
     showEl('outputSection');
     showEl('phraseMatchBar');
-    showEl('signGuideSection');
     showEl('keyboardSection');
     showEl('voiceSection');
     showEl('nameSection');
     showEl('quickSection');
     showEl('suggestSection');
+    hideEl('signGuideSection');
     hideEl('gestureActionPanel');
 
     // Override App callbacks để ghép chữ cái
@@ -4454,6 +4580,7 @@ function switchMode(mode) {
     hideEl('outputSection');
     hideEl('phraseMatchBar');
     hideEl('phraseMatchPopup');
+    hideEl('signGuideSection');
     hideEl('keyboardSection');
     hideEl('voiceSection');
     hideEl('nameSection');
@@ -4492,53 +4619,55 @@ document.addEventListener('DOMContentLoaded', () => {
 // ══════════════════════════════════════════════════════════════
 
 const GESTURE_ACTIONS = {
+  // Mỗi mục PHẢI khớp với detect() → topic & idx tương ứng
   greet: [
-    { emoji:'👋', phrase:'Xin chào!',        gesture:'WAVE',     hint:'Xòe 5 ngón tay',           desc:'Mở rộng toàn bộ bàn tay trước camera' },
-    { emoji:'👍', phrase:'Rất tốt / Đồng ý', gesture:'THUMBS_UP',hint:'Ngón cái hướng lên',        desc:'Nắm tay, giơ ngón cái thẳng lên trên' },
-    { emoji:'👌', phrase:'Dạ vâng / Ổn rồi', gesture:'YES',      hint:'Tạo vòng O ngón cái+trỏ',  desc:'Đầu ngón cái chạm đầu ngón trỏ thành vòng' },
-    { emoji:'✌️', phrase:'Bạn khỏe không?',  gesture:'HOW_ARE',  hint:'Ngón trỏ+giữa mở chữ V',  desc:'Hai ngón trỏ và giữa thẳng, xòe rộng' },
-    { emoji:'❤️', phrase:'Tôi yêu bạn!',     gesture:'LOVE',     hint:'Cái+trỏ+út mở (ILY sign)',desc:'Ngón cái, trỏ và út mở, giữa+nhẫn gập' },
-    { emoji:'✊', phrase:'Cần giúp đỡ!',      gesture:'HELP',     hint:'Nắm đấm hoàn toàn',        desc:'Nắm chặt tất cả 5 ngón tay vào lòng bàn tay' },
+    /* idx:0 WAVE    */ { emoji:'👋', phrase:'Xin chào!',         gesture:'WAVE',      hint:'Xòe 5 ngón — cả ngón cái',        desc:'Mở rộng toàn bộ bàn tay, bao gồm cả ngón cái' },
+    /* idx:1 THU_UP  */ { emoji:'👍', phrase:'Tốt lắm / Đồng ý!', gesture:'THUMBS_UP', hint:'Nắm tay, ngón cái lên cao',       desc:'Nắm chặt, ngón cái thẳng cao hơn wrist' },
+    /* idx:2 YES     */ { emoji:'👌', phrase:'Dạ vâng / Ổn rồi!', gesture:'YES',       hint:'Cái+trỏ chạm thành vòng O',       desc:'Đầu ngón cái chạm ngón trỏ, 3 ngón kia thẳng' },
+    /* idx:3 HOW_ARE */ { emoji:'✌️', phrase:'Bạn khỏe không?',   gesture:'HOW_ARE',   hint:'Trỏ+giữa xòe rộng chữ V',        desc:'Ngón trỏ và giữa thẳng, xòe rộng hình V' },
+    /* idx:4 LOVE    */ { emoji:'❤️', phrase:'Tôi yêu bạn!',      gesture:'LOVE',      hint:'Cái+trỏ+út mở (ILY sign)',        desc:'Ngón cái, trỏ và út mở; giữa+nhẫn gập vào' },
+    /* idx:5 HELP    */ { emoji:'✊', phrase:'Cần giúp đỡ ngay!',  gesture:'HELP',      hint:'Nắm đấm chặt tất cả ngón',        desc:'Gập toàn bộ 5 ngón vào lòng bàn tay' },
+    /* idx:6 MY_NAME */ { emoji:'🙋', phrase:'Tôi tên là…',        gesture:'MY_NAME',   hint:'Chỉ ngón GIỮA duỗi, 4 ngón gập', desc:'Chỉ ngón giữa duỗi thẳng, trỏ+nhẫn+út+cái gập' },
   ],
   daily: [
-    { emoji:'💧', phrase:'Tôi cần nước uống', gesture:'WATER',    hint:'Chỉ ngón út thẳng',        desc:'Chỉ ngón út duỗi thẳng, 4 ngón còn lại gập' },
-    { emoji:'🍽️', phrase:'Tôi muốn ăn',      gesture:'EAT',      hint:'3 ngón: trỏ+giữa+nhẫn',   desc:'Ba ngón trỏ, giữa, nhẫn mở; cái và út gập' },
-    { emoji:'🚻', phrase:'Nhà vệ sinh đâu?', gesture:'TOILET',   hint:'Ngón trỏ+giữa chỉ xuống', desc:'Ngón trỏ và giữa thẳng, chỉ hướng xuống dưới' },
-    { emoji:'📱', phrase:'Điện thoại tôi',    gesture:'PHONE',    hint:'Ngón cái+út mở (gọi điện)',desc:'Ngón cái và út mở rộng, 3 ngón giữa gập lại' },
-    { emoji:'⏰', phrase:'Mấy giờ rồi?',      gesture:'TIME',     hint:'Ngón cái+trỏ hình L lên',  desc:'Ngón cái và trỏ mở tạo góc L, trỏ hướng lên' },
-    { emoji:'🛑', phrase:'Dừng lại!',          gesture:'STOP',     hint:'Lòng bàn tay phẳng ra',    desc:'Bốn ngón mở ngang, cái gập, đẩy bàn tay ra phía trước' },
+    /* idx:0 WATER   */ { emoji:'💧', phrase:'Tôi cần nước uống',  gesture:'WATER',     hint:'Chỉ ngón út thẳng',              desc:'Chỉ ngón út duỗi, 4 ngón còn lại gập' },
+    /* idx:1 EAT     */ { emoji:'🍽️', phrase:'Tôi muốn ăn',       gesture:'EAT',       hint:'Trỏ+giữa+nhẫn mở (3 ngón)',      desc:'Ba ngón trỏ, giữa, nhẫn thẳng; cái+út gập' },
+    /* idx:2 STOP    */ { emoji:'🚻', phrase:'Nhà vệ sinh đâu?',  gesture:'STOP',      hint:'4 ngón ngang, cái gập',           desc:'Bốn ngón mở ngang, ngón cái gập vào lòng' },
+    /* idx:3 PHONE   */ { emoji:'📱', phrase:'Gọi điện thoại',     gesture:'PHONE',     hint:'Cái+út mở (như cầm điện thoại)', desc:'Ngón cái và út mở rộng, 3 ngón giữa gập' },
+    /* idx:4 TIME    */ { emoji:'⏰', phrase:'Mấy giờ rồi?',       gesture:'TIME',      hint:'Cái+trỏ hình L, trỏ hướng lên',  desc:'Ngón cái và trỏ mở tạo góc L vuông' },
+    /* idx:5 FORWARD */ { emoji:'🏠', phrase:'Tôi muốn về nhà',    gesture:'FORWARD',   hint:'Ngón trỏ chỉ thẳng lên',         desc:'Chỉ ngón trỏ thẳng đứng hướng lên trên' },
   ],
   emotion: [
-    { emoji:'😊', phrase:'Tôi vui!',           gesture:'WAVE',     hint:'Xòe 5 ngón tay',           desc:'Bàn tay mở rộng hoàn toàn' },
-    { emoji:'👍', phrase:'Rất tốt!',            gesture:'THUMBS_UP',hint:'Ngón cái lên',              desc:'Nắm tay, ngón cái hướng lên trên' },
-    { emoji:'👎', phrase:'Không tốt',           gesture:'THUMBS_DOWN',hint:'Ngón cái xuống',          desc:'Nắm tay, ngón cái hướng xuống dưới' },
-    { emoji:'✊', phrase:'Tôi không thích',     gesture:'HELP',     hint:'Nắm đấm hoàn toàn',        desc:'Nắm chặt tất cả ngón tay' },
-    { emoji:'❤️', phrase:'Tôi yêu bạn!',       gesture:'LOVE',     hint:'Cái+trỏ+út mở (ILY)',     desc:'Ngón cái, trỏ và út mở; giữa+nhẫn gập' },
-    { emoji:'👌', phrase:'Tôi ổn!',             gesture:'YES',      hint:'Tạo vòng O ngón cái+trỏ',  desc:'Đầu ngón cái chạm đầu ngón trỏ thành vòng tròn' },
+    /* idx:0 WAVE    */ { emoji:'😊', phrase:'Tôi vui lắm!',       gesture:'WAVE',      hint:'Xòe 5 ngón — cả ngón cái',       desc:'Mở rộng toàn bộ bàn tay' },
+    /* idx:1 THU_UP  */ { emoji:'👍', phrase:'Rất tốt!',            gesture:'THUMBS_UP', hint:'Nắm tay, ngón cái lên cao',      desc:'Nắm chặt, ngón cái thẳng cao hơn wrist' },
+    /* idx:2 THU_DWN */ { emoji:'👎', phrase:'Không tốt chút nào', gesture:'THUMBS_DOWN',hint:'Ngón cái hướng xuống dưới',     desc:'Nắm tay, ngón cái hướng xuống thấp hơn wrist' },
+    /* idx:3 HELP    */ { emoji:'✊', phrase:'Tôi không thích',      gesture:'HELP',      hint:'Nắm đấm chặt',                   desc:'Gập chặt tất cả ngón tay vào lòng bàn tay' },
+    /* idx:4 LOVE    */ { emoji:'❤️', phrase:'Tôi yêu bạn!',       gesture:'LOVE',      hint:'Cái+trỏ+út mở (ILY)',            desc:'Ngón cái, trỏ, út mở; giữa+nhẫn gập' },
+    /* idx:5 YES     */ { emoji:'👌', phrase:'Tôi ổn, không sao!', gesture:'YES',       hint:'Cái+trỏ tạo vòng O',             desc:'Đầu ngón cái chạm ngón trỏ thành vòng tròn' },
   ],
   medical: [
-    { emoji:'✊', phrase:'Tôi đang đau',        gesture:'HELP',     hint:'Nắm đấm',                  desc:'Nắm chặt bàn tay, giơ lên' },
-    { emoji:'🤙', phrase:'Gọi cấp cứu ngay!',  gesture:'PHONE',    hint:'Ngón cái+út mở (gọi điện)',desc:'Ngón cái và út mở rộng như cầm điện thoại' },
-    { emoji:'☝️', phrase:'Tôi cần bác sĩ',     gesture:'DOCTOR',   hint:'Ngón cái+trỏ hình L xuống',desc:'Ngón cái và trỏ mở, trỏ hướng xuống dưới' },
-    { emoji:'💊', phrase:'Tôi cần thuốc',       gesture:'EAT',      hint:'3 ngón: trỏ+giữa+nhẫn',   desc:'Ba ngón trỏ, giữa, nhẫn mở' },
-    { emoji:'🛑', phrase:'Dừng! Tôi dị ứng',   gesture:'STOP',     hint:'Lòng bàn tay phẳng ra',    desc:'Bốn ngón mở ngang, đẩy bàn tay ra trước' },
-    { emoji:'✌️', phrase:'Đo nhiệt độ cho tôi',gesture:'HOW_ARE',  hint:'Ngón trỏ+giữa mở chữ V',  desc:'Hai ngón trỏ và giữa thẳng, xòe rộng' },
+    /* idx:0 HELP    */ { emoji:'✊', phrase:'Tôi đang bị đau',     gesture:'HELP',      hint:'Nắm đấm chặt',                   desc:'Gập toàn bộ ngón tay — biểu hiện đau' },
+    /* idx:1 WAVE    */ { emoji:'👋', phrase:'Gọi cấp cứu cho tôi!',gesture:'WAVE',     hint:'Xòe 5 ngón, vẫy mạnh',          desc:'Mở toàn bộ bàn tay, vẫy mạnh để gây chú ý' },
+    /* idx:2 DOCTOR  */ { emoji:'☝️', phrase:'Tôi cần gặp bác sĩ', gesture:'DOCTOR',    hint:'Cái+trỏ hình L, trỏ xuống',     desc:'Ngón cái và trỏ tạo chữ L, trỏ hướng xuống' },
+    /* idx:3 EAT     */ { emoji:'💊', phrase:'Tôi cần thuốc',       gesture:'EAT',       hint:'Trỏ+giữa+nhẫn mở (3 ngón)',     desc:'Ba ngón trỏ, giữa, nhẫn thẳng' },
+    /* idx:4 STOP    */ { emoji:'🛑', phrase:'Dừng! Tôi bị dị ứng',gesture:'STOP',      hint:'4 ngón ngang, cái gập',          desc:'Bốn ngón mở ngang, đẩy ra trước mặt' },
+    /* idx:5 HOW_ARE */ { emoji:'✌️', phrase:'Đo nhiệt độ giúp tôi',gesture:'HOW_ARE',  hint:'Trỏ+giữa xòe chữ V',            desc:'Ngón trỏ và giữa thẳng, xòe rộng' },
   ],
   help: [
-    { emoji:'✊', phrase:'Cần giúp đỡ ngay!',  gesture:'HELP',     hint:'Nắm đấm hoàn toàn',        desc:'Nắm chặt bàn tay và giơ lên' },
-    { emoji:'🛑', phrase:'Dừng lại! Nguy hiểm',gesture:'STOP',     hint:'Lòng bàn tay phẳng ra',    desc:'Bốn ngón mở ngang, đẩy mạnh ra trước' },
-    { emoji:'📱', phrase:'Gọi điện giúp tôi',  gesture:'PHONE',    hint:'Ngón cái+út mở',            desc:'Ngón cái và út mở rộng như cầm điện thoại' },
-    { emoji:'👋', phrase:'Tôi khiếm thính',    gesture:'WAVE',     hint:'Xòe 5 ngón tay',           desc:'Mở toàn bộ bàn tay, vẫy nhẹ' },
-    { emoji:'✌️', phrase:'Viết ra giúp tôi',   gesture:'HOW_ARE',  hint:'Ngón trỏ+giữa mở chữ V',  desc:'Hai ngón trỏ và giữa mở rộng hình V' },
-    { emoji:'👌', phrase:'Tôi hiểu rồi',        gesture:'YES',      hint:'Tạo vòng O ngón cái+trỏ',  desc:'Đầu ngón cái chạm đầu ngón trỏ thành vòng' },
+    /* idx:0 HELP    */ { emoji:'✊', phrase:'Cần giúp đỡ ngay!',    gesture:'HELP',      hint:'Nắm đấm chặt, giơ lên',         desc:'Gập chặt toàn bộ bàn tay, giơ lên cao' },
+    /* idx:1 STOP    */ { emoji:'🛑', phrase:'Dừng lại! Nguy hiểm!', gesture:'STOP',      hint:'4 ngón ngang, cái gập',          desc:'Bốn ngón mở ngang, đẩy mạnh ra trước' },
+    /* idx:2 PHONE   */ { emoji:'📱', phrase:'Gọi điện giúp tôi',    gesture:'PHONE',     hint:'Cái+út mở',                      desc:'Ngón cái và út mở rộng như cầm điện thoại' },
+    /* idx:3 MUTE    */ { emoji:'🔇', phrase:'Tôi khiếm thanh (không nói được)', gesture:'MUTE', hint:'Trỏ+giữa sát nhau duỗi thẳng', desc:'Hai ngón trỏ và giữa duỗi thẳng, sát nhau (không xòe rộng)' },
+    /* idx:4 DEAF    */ { emoji:'👂', phrase:'Tôi khiếm thính (không nghe được)', gesture:'DEAF', hint:'Ngón trỏ chỉ ngang (hướng vào tai)', desc:'Chỉ ngón trỏ duỗi thẳng sang ngang, hướng về phía tai' },
+    /* idx:5 YES     */ { emoji:'👌', phrase:'Tôi đã hiểu rồi',      gesture:'YES',       hint:'Cái+trỏ tạo vòng O',             desc:'Đầu ngón cái chạm đầu ngón trỏ thành vòng' },
   ],
   direction: [
-    { emoji:'☝️', phrase:'Đi thẳng',           gesture:'FORWARD',  hint:'Ngón trỏ chỉ thẳng lên',   desc:'Chỉ ngón trỏ thẳng đứng, hướng lên trên' },
-    { emoji:'👈', phrase:'Rẽ trái',             gesture:'LEFT',     hint:'Ngón trỏ chỉ sang trái',   desc:'Chỉ ngón trỏ sang bên trái' },
-    { emoji:'👉', phrase:'Rẽ phải',             gesture:'RIGHT',    hint:'Ngón trỏ chỉ sang phải',   desc:'Chỉ ngón trỏ sang bên phải' },
-    { emoji:'👇', phrase:'Đi xuống tầng dưới', gesture:'DOWN',     hint:'Ngón trỏ chỉ xuống',       desc:'Chỉ ngón trỏ thẳng hướng xuống dưới' },
-    { emoji:'🛑', phrase:'Dừng lại / Đứng đây',gesture:'STOP',     hint:'Lòng bàn tay phẳng ra',    desc:'Bốn ngón mở ngang, đẩy bàn tay ra trước mặt' },
-    { emoji:'👋', phrase:'Qua đây với tôi',    gesture:'WAVE',     hint:'Xòe 5 ngón tay',           desc:'Mở rộng bàn tay hướng về phía người kia' },
+    /* idx:0 FORWARD */ { emoji:'☝️', phrase:'Đi thẳng',            gesture:'FORWARD',   hint:'Ngón trỏ chỉ thẳng lên',        desc:'Chỉ ngón trỏ thẳng đứng hướng lên trên' },
+    /* idx:1 LEFT    */ { emoji:'👈', phrase:'Rẽ trái',              gesture:'LEFT',      hint:'Ngón trỏ sang trái',             desc:'Chỉ ngón trỏ sang bên trái màn hình' },
+    /* idx:2 RIGHT   */ { emoji:'👉', phrase:'Rẽ phải',              gesture:'RIGHT',     hint:'Ngón trỏ sang phải',             desc:'Chỉ ngón trỏ sang bên phải màn hình' },
+    /* idx:3 DOWN    */ { emoji:'👇', phrase:'Đi xuống / Tầng dưới',gesture:'DOWN',      hint:'Ngón trỏ chỉ xuống',             desc:'Chỉ ngón trỏ thẳng hướng xuống dưới' },
+    /* idx:4 STOP    */ { emoji:'🛑', phrase:'Dừng lại!',            gesture:'STOP',      hint:'4 ngón ngang, cái gập',          desc:'Bốn ngón mở ngang, đẩy bàn tay ra trước' },
+    /* idx:5 WAVE    */ { emoji:'👋', phrase:'Lại đây với tôi',      gesture:'WAVE',      hint:'Xòe 5 ngón tay',                 desc:'Mở rộng bàn tay hướng về phía người kia' },
   ],
 };
 
@@ -4567,16 +4696,15 @@ const GestureActionEngine = (() => {
   }
 
   // Ngón tay có đang duỗi thẳng không?
-  // So sánh tip (đầu ngón) với pip (khớp giữa) so với mcp (gốc ngón)
-  function fingerExtended(lm, tip, pip, mcp) {
-    // tip phải cao hơn (y nhỏ hơn trong ảnh lật dọc) pip đáng kể
-    return lm[tip].y < lm[pip].y - 0.03;
+  // tip (đầu ngón, index 4/8/12/16/20) phải cao hơn dip (khớp 3) đáng kể
+  function fingerExtended(lm, tip, dip, pip) {
+    return lm[tip].y < lm[pip].y - 0.025;
   }
 
-  // Ngón cái có duỗi sang ngang không?
+  // Ngón cái: do camera mirror + góc xoay, kiểm tra khoảng cách tip vs mcp
   function thumbExtended(lm) {
-    return lm[T4].x < lm[T2].x - 0.04 || lm[T4].x > lm[T2].x + 0.04 ||
-           dist(lm[T4], lm[I1]) > 0.12;
+    // Ngón cái duỗi khi tip (4) xa hơn mcp (2) so với khi gập
+    return dist(lm[T4], lm[I1]) > 0.10;
   }
 
   // Kiểm tra 5 ngón: [thumb, index, middle, ring, pinky]
@@ -4617,212 +4745,203 @@ const GestureActionEngine = (() => {
     const [fT, fI, fM, fR, fP] = f;
     const extCount = f.filter(Boolean).length;
 
-    // ---------- GREET ----------
-
-    // 1. THUMBS_UP (👍 Tốt!) — ngón cái lên, 4 ngón còn lại nắm
-    if (fT && !fI && !fM && !fR && !fP && lm[T4].y < lm[T2].y - 0.06) {
-      return { gesture:'THUMBS_UP', topic:'greet', idx:1, confidence:92 };
+    // ── THUMBS_UP (👍) — cái lên, 4 ngón còn lại nắm chặt ───────────
+    // ngón cái phải thực sự cao hơn wrist và các ngón khác gập
+    if (fT && !fI && !fM && !fR && !fP) {
+      if (lm[T4].y < lm[W].y - 0.05) {
+        return { gesture:'THUMBS_UP', topic:'emotion', idx:1, confidence:92 };
+      }
+      // Ngón cái ngang thấp → PHONE
+      return { gesture:'PHONE', topic:'daily', idx:3, confidence:88 };
     }
 
-    // 2. THUMBS_DOWN (👎 Không tốt) — ngón cái xuống
-    if (!fI && !fM && !fR && !fP && lm[T4].y > lm[T2].y + 0.06) {
+    // ── THUMBS_DOWN (👎) — cái xuống ─────────────────────────────────
+    if (!fI && !fM && !fR && !fP && lm[T4].y > lm[W].y + 0.04) {
       return { gesture:'THUMBS_DOWN', topic:'emotion', idx:2, confidence:90 };
     }
 
-    // 3. OPEN_HAND / WAVE (✋ Xin chào) — tất cả 5 ngón mở
-    if (fT && fI && fM && fR && fP) {
-      return { gesture:'WAVE', topic:'greet', idx:0, confidence:88 };
-    }
-
-    // 4. ILY — ngón cái+trỏ+út mở, giữa+nhẫn gập (I Love You)
-    if (fT && fI && !fM && !fR && fP) {
-      return { gesture:'LOVE', topic:'emotion', idx:4, confidence:91 };
-    }
-
-    // 5. VICTORY/V (✌️ Bạn khỏe không) — trỏ+giữa mở, còn lại gập
-    if (!fT && fI && fM && !fR && !fP) {
-      const spread = dist(lm[I4], lm[M4]);
-      if (spread > 0.06) {
-        return { gesture:'HOW_ARE', topic:'greet', idx:3, confidence:87 };
-      }
-    }
-
-    // 6. POINT_UP (☝️ Đi thẳng/Hướng dẫn) — chỉ ngón trỏ thẳng lên
-    if (!fT && fI && !fM && !fR && !fP) {
-      const ang = indexAngle(lm);
-      if (ang < -60 && ang > -120) {
-        return { gesture:'FORWARD', topic:'direction', idx:0, confidence:89 };
-      }
-      // Ngón trỏ ngang → trái/phải
-      if (ang > -30 && ang < 30) {
-        return { gesture:'RIGHT', topic:'direction', idx:2, confidence:86 };
-      }
-      if (ang > 150 || ang < -150) {
-        return { gesture:'LEFT', topic:'direction', idx:1, confidence:86 };
-      }
-      // Ngón trỏ xuống
-      if (ang > 60 && ang < 120) {
-        return { gesture:'DOWN', topic:'direction', idx:3, confidence:86 };
-      }
-    }
-
-    // 7. STOP — lòng bàn tay đẩy ra (5 ngón mở, palm facing out + wrist thấp)
-    // Được phân biệt với WAVE bởi vị trí: tay phẳng ngang, wrist thấp hơn ngón
-    if (fI && fM && fR && fP && !fT && wristBelowIndex(lm)) {
-      return { gesture:'STOP', topic:'direction', idx:4, confidence:85 };
-    }
-
-    // 8. OK/CIRCLE (👌 Ổn) — ngón cái+trỏ tạo vòng O, 3 ngón kia thẳng
-    {
-      const tipDist = dist(lm[T4], lm[I4]);
-      if (tipDist < 0.06 && fM && fR && fP) {
-        return { gesture:'YES', topic:'greet', idx:2, confidence:88 };
-      }
-    }
-
-    // 9. FIST (✊ Cần giúp / xin lỗi) — nắm tay, không có ngón nào mở
-    if (!fT && !fI && !fM && !fR && !fP) {
-      return { gesture:'HELP', topic:'help', idx:0, confidence:84 };
-    }
-
-    // 10. CALL ME (🤙 Điện thoại) — ngón cái+út mở, 3 giữa gập
+    // ── PHONE / CALL ME (🤙) — cái+út mở, 3 giữa gập ─────────────────
     if (fT && !fI && !fM && !fR && fP) {
       return { gesture:'PHONE', topic:'daily', idx:3, confidence:90 };
     }
 
-    // 11. POINTING_DOWN (👇 Nhà vệ sinh / nơi nào đó) — trỏ+giữa xuống
-    if (!fT && fI && fM && !fR && !fP) {
-      const ang = indexAngle(lm);
-      if (ang > 60 && ang < 120) {
-        return { gesture:'TOILET', topic:'daily', idx:2, confidence:85 };
+    // ── ILY / LOVE (❤️) — cái+trỏ+út mở, giữa+nhẫn gập ──────────────
+    if (fT && fI && !fM && !fR && fP) {
+      return { gesture:'LOVE', topic:'emotion', idx:4, confidence:91 };
+    }
+
+    // ── OPEN_HAND / WAVE (✋ 5 ngón mở) ──────────────────────────────
+    // Tất cả 5 ngón đều mở
+    if (fT && fI && fM && fR && fP) {
+      return { gesture:'WAVE', topic:'greet', idx:0, confidence:88 };
+    }
+
+    // ── STOP (🛑) — 4 ngón ngang, cái gập, wrist thấp hơn ngón ──────
+    // Phân biệt với WAVE: cái KHÔNG mở
+    if (!fT && fI && fM && fR && fP) {
+      return { gesture:'STOP', topic:'direction', idx:4, confidence:85 };
+    }
+
+    // ── OK / YES (👌) — cái+trỏ thành vòng O, 3 ngón kia mở ─────────
+    {
+      const tipDist = dist(lm[T4], lm[I4]);
+      if (tipDist < 0.055 && fM && fR && fP) {
+        return { gesture:'YES', topic:'greet', idx:2, confidence:88 };
       }
     }
 
-    // 12. THREE_FINGERS (ba ngón: trỏ+giữa+nhẫn mở) → Cần ăn
+    // ── VICTORY / V (✌️) — chỉ trỏ+giữa mở, xòe rộng ────────────────
+    if (!fT && fI && fM && !fR && !fP) {
+      const spread = dist(lm[I4], lm[M4]);
+      if (spread > 0.05) {
+        return { gesture:'HOW_ARE', topic:'greet', idx:3, confidence:87 };
+      }
+      // Hai ngón sát nhau (U shape) → MUTE (Khiếm thanh / không nói được)
+      return { gesture:'MUTE', topic:'help', idx:3, confidence:84 };
+    }
+
+    // ── INDEX POINT (chỉ trỏ) — hướng phụ thuộc góc ─────────────────
+    if (!fT && fI && !fM && !fR && !fP) {
+      const ang = indexAngle(lm);
+      // Trỏ chỉ vào tai (ngang, góc 0±40°) → DEAF (Khiếm thính)
+      if (ang > -40 && ang < 40) return { gesture:'DEAF', topic:'help', idx:4, confidence:88 };
+      if (ang < -55 && ang > -125) return { gesture:'FORWARD',  topic:'direction', idx:0, confidence:89 };
+      if (ang > 150  || ang < -150)return { gesture:'LEFT',     topic:'direction', idx:1, confidence:86 };
+      if (ang > 55   && ang < 125) return { gesture:'DOWN',     topic:'direction', idx:3, confidence:86 };
+      return { gesture:'FORWARD', topic:'direction', idx:0, confidence:82 };
+    }
+
+    // ── MY_NAME — cái+giữa mở, trỏ+nhẫn+út gập (chữ N/tên) ──────────
+    if (!fT && !fI && fM && !fR && !fP) {
+      return { gesture:'MY_NAME', topic:'greet', idx:6, confidence:83 };
+    }
+
+    // ── FIST (✊ Cần giúp) — nắm tay, không ngón nào mở ──────────────
+    if (!fT && !fI && !fM && !fR && !fP) {
+      return { gesture:'HELP', topic:'greet', idx:5, confidence:84 };
+    }
+
+    // ── THREE FINGERS (🍽️ Ăn) — trỏ+giữa+nhẫn mở ────────────────────
     if (!fT && fI && fM && fR && !fP) {
       return { gesture:'EAT', topic:'daily', idx:1, confidence:83 };
     }
 
-    // 13. PINKY_ONLY (💧 Nước) — chỉ ngón út mở
+    // ── PINKY ONLY (💧 Nước) — chỉ ngón út mở ────────────────────────
     if (!fT && !fI && !fM && !fR && fP) {
       return { gesture:'WATER', topic:'daily', idx:0, confidence:82 };
     }
 
-    // 14. THUMB+INDEX L-shape (L = chỉ thời gian) — cái+trỏ tạo chữ L
+    // ── L-SHAPE (cái+trỏ) — TIME hoặc DOCTOR theo góc ────────────────
     if (fT && fI && !fM && !fR && !fP) {
-      const thumbAngle = Math.atan2(
-        lm[T4].y - lm[W].y,
-        lm[T4].x - lm[W].x
-      ) * 180 / Math.PI;
-      // Khi trỏ hướng lên và cái sang ngang → L-shape
-      const angI = indexAngle(lm);
-      if (angI < -50) {
-        return { gesture:'TIME', topic:'daily', idx:4, confidence:83 };
-      }
-      // Trỏ+cái hướng xuống → Bác sĩ
-      if (angI > 50) {
-        return { gesture:'DOCTOR', topic:'medical', idx:2, confidence:81 };
-      }
+      const ang = indexAngle(lm);
+      if (ang < -50) return { gesture:'TIME',   topic:'daily',   idx:4, confidence:83 };
+      if (ang > 50)  return { gesture:'DOCTOR', topic:'medical', idx:2, confidence:81 };
     }
 
     return null;
   }
 
-  // ── Rolling window để ổn định ────────────────────────────────
-  const HISTORY_LEN = 4;
+  // ── Rolling window nhẹ: 3 frame, cần 2/3 đồng thuận ────────
+  const HISTORY_LEN = 3;
   let _history = [];
-  let _lastResult = null;
+  let _lastRawByGesture = {};  // lưu raw result gần nhất theo gesture key
 
   function classifyWithSmoothing(lm) {
     const raw = detect(lm);
-    const newGesture = raw ? raw.gesture : null;
+    const key = raw ? raw.gesture : null;
+    if (raw) _lastRawByGesture[raw.gesture] = raw;
 
-    // Reset lịch sử ngay khi phát hiện cử chỉ mới → phản hồi nhanh hơn
-    if (_history.length > 0 && _history[_history.length - 1] !== null && newGesture !== null && newGesture !== _history[_history.length - 1]) {
-      _history = [];
-    }
-
-    _history.push(newGesture);
+    _history.push(key);
     if (_history.length > HISTORY_LEN) _history.shift();
+
+    // Frame đầu tiên: trả ngay không chờ
+    if (_history.length === 1) return raw;
 
     // Vote
     const votes = {};
     for (const g of _history) {
-      if (!g) continue;
-      votes[g] = (votes[g] || 0) + 1;
+      if (g) votes[g] = (votes[g] || 0) + 1;
     }
     let best = null, bestCount = 0;
     for (const [g, c] of Object.entries(votes)) {
       if (c > bestCount) { best = g; bestCount = c; }
     }
-
-    // Cần ít nhất 3/4 frame đồng thuận
-    if (!best || bestCount < 3) return null;
-
-    // Tìm action tương ứng
-    if (!raw || raw.gesture !== best) return null;
-    return raw;
+    // Cần 2/3 frame đồng ý
+    if (!best || bestCount < 2) return null;
+    // Trả về raw result đã lưu cho gesture đó
+    return _lastRawByGesture[best] || null;
   }
 
-  function reset() { _history = []; _lastResult = null; }
+  function reset() { _history = []; _lastRawByGesture = {}; }
 
   return { classifyWithSmoothing, reset };
 })();
 
-// ── Hook vào MPEngine: chèn raw landmarks vào chế độ 2 ──────────
-// Patch processFrame để gửi raw landmarks cho GestureActionEngine
-(function patchMPEngineForActionMode() {
-  const _origSetDetecting = MPEngine.setDetecting.bind(MPEngine);
-
-  // Ghi đè callback trong MPEngine khi chế độ 2 đang hoạt động
-  // Cách an toàn: monkey-patch App.onGestureDetected KHÔNG đủ vì MPEngine
-  // gọi classifyGesture (ML) trước. Ta cần intercept ở tầng landmarks.
-  //
-  // Giải pháp: override classifyGesture khi mode 2 — thay ML bằng rule-based
-  const _origClassify = window.classifyGesture;
-
-  window.classifyGesture = function(landmarks) {
-    if (CURRENT_MODE === 2) {
-      // Chế độ 2: dùng rule-based engine
-      const result = GestureActionEngine.classifyWithSmoothing(landmarks);
-      if (result) {
-        // Trả về format giống ML để App.onGestureDetected nhận được
-        return {
-          id:         result.gesture,  // id là tên cử chỉ, không phải chữ cái
-          confidence: result.confidence,
-          _actionResult: result,       // đính kèm full result
-        };
-      }
-      return null;
-    }
-    // Chế độ 1: dùng ML như cũ
-    return _origClassify(landmarks);
-  };
-})();
+// ── Patch window.classifyGesture: chế độ 2 bypass ML ────────────
+const _origClassifyGesture = window.classifyGesture;
+window.classifyGesture = function(landmarks) {
+  if (CURRENT_MODE === 2) {
+    const result = GestureActionEngine.classifyWithSmoothing(landmarks);
+    if (!result) return null;
+    // FIX: dùng đúng field _actionResult (phải khớp với callback bên dưới)
+    return { id: '__ACTION__', confidence: result.confidence, _actionResult: result };
+  }
+  return _origClassifyGesture(landmarks);
+};
 
 // ── Render grid gợi ý theo chủ đề ───────────────────────────────
 function renderGestureRefGrid(topic) {
   _gestureActionTopic = topic;
   const data = GESTURE_ACTIONS[topic] || [];
+  const handGuide = GESTURE_HAND_GUIDE[topic + '_guide'] || [];
   const grid = document.getElementById('gestureRefGrid');
   if (!grid) return;
-  grid.innerHTML = data.map((item, idx) => `
+
+  // Map gesture name → hand guide item để lấy hướng dẫn ngón tay
+  const guideMap = {};
+  handGuide.forEach(g => { guideMap[g.gesture] = g; });
+
+  grid.innerHTML = data.map((item, idx) => {
+    const guide = guideMap[item.gesture] || {};
+    const handEmoji = guide.hand || '🤚';
+    const steps = guide.steps || [];
+    const stepHtml = steps.length
+      ? `<ol style="margin:4px 0 0;padding-left:14px">${steps.map(s =>
+          `<li style="font-size:9.5px;color:rgba(255,255,255,0.55);line-height:1.55">${s}</li>`
+        ).join('')}</ol>`
+      : `<div class="grc-hint">✋ ${item.hint}</div>`;
+
+    return `
     <div class="gesture-ref-card" id="grc_${topic}_${idx}" onclick="quickSpeakGesture('${item.phrase.replace(/'/g,"\\'")}')">
       <div class="grc-top">
-        <span class="grc-emoji">${item.emoji}</span>
-        <span class="grc-phrase">${item.phrase}</span>
+        <span style="font-size:28px;line-height:1">${handEmoji}</span>
+        <div style="flex:1">
+          <span class="grc-phrase">${item.emoji} ${item.phrase}</span>
+        </div>
       </div>
       <span class="grc-gesture-name">🤙 ${item.gesture}</span>
-      <div class="grc-hint">✋ ${item.hint}<br><span style="color:rgba(255,255,255,0.2)">${item.desc}</span></div>
+      ${stepHtml}
+      ${guide.tip ? `<div style="font-size:9.5px;color:#ffd166;background:rgba(255,209,102,0.08);border-radius:5px;padding:3px 7px;margin-top:4px;line-height:1.4">💡 ${guide.tip}</div>` : ''}
       <button class="grc-speak-mini">▶ Phát</button>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 function switchGestureTopic(topic, btn) {
   document.querySelectorAll('.gesture-topic-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderGestureRefGrid(topic);
+  // Đồng bộ sign guide tab nếu đang mở
+  const guideTab = topic + '_guide';
+  if (GESTURE_HAND_GUIDE[guideTab] && _signGuideOpen) {
+    _signGuideTab = guideTab;
+    renderSignGuideContent(guideTab);
+    // Cập nhật active tab button
+    document.querySelectorAll('.sign-guide-tab').forEach(b => {
+      const isMatch = b.getAttribute('onclick') && b.getAttribute('onclick').includes(guideTab);
+      b.classList.toggle('active', isMatch);
+    });
+  }
 }
 
 function quickSpeakGesture(phrase) {
@@ -4852,13 +4971,22 @@ App._actionMode_onGestureDetected = function(result) {
   const item  = GESTURE_ACTIONS[topic]?.[actionResult.idx];
   if (!item) return;
 
-  // Hiển thị kết quả
+  // ── MY_NAME: lấy tên người dùng nếu có ──────────────────────
+  let displayPhrase = item.phrase;
+  let speakPhrase   = item.phrase;
+  if (actionResult.gesture === 'MY_NAME') {
+    const name = (typeof STATE !== 'undefined' && STATE.userName) ? STATE.userName : '';
+    displayPhrase = name ? `Tôi tên là ${name}` : 'Tôi tên là… (chưa nhập tên)';
+    speakPhrase   = name ? `Tôi tên là ${name}` : 'Tôi tên là';
+  }
+
+  // ── Hiển thị kết quả NGAY (không cần hold) ──────────────
   document.getElementById('gestureResultEmoji').textContent = item.emoji;
-  document.getElementById('gestureResultLabel').textContent = item.phrase;
+  document.getElementById('gestureResultLabel').textContent = displayPhrase;
   document.getElementById('gestureResultSub').textContent   = `🤙 ${item.gesture} · ${actionResult.confidence}%`;
   document.getElementById('gestureResultBox').classList.add('matched');
   document.getElementById('gestureResultSpeakBtn').disabled = false;
-  _currentGestureAction = item;
+  _currentGestureAction = { ...item, phrase: speakPhrase };
 
   // Chuyển tab nếu cần
   if (topic !== _gestureActionTopic) {
@@ -4877,9 +5005,10 @@ App._actionMode_onGestureDetected = function(result) {
   // Highlight card
   document.querySelectorAll('.gesture-ref-card').forEach(c => c.classList.remove('highlight'));
   const card = document.getElementById(`grc_${topic}_${actionResult.idx}`);
-  if (card) { card.classList.add('highlight'); }
+  if (card) { card.classList.add('highlight'); card.scrollIntoView({ behavior:'smooth', block:'nearest' }); }
 
-  // Hold timer → tự phát âm
+  // Hold 0.8s → tự phát âm (ngắn hơn chế độ 1)
+  const HOLD_MODE2 = 0.8;
   const gestureKey = actionResult.gesture;
   if (gestureKey !== STATE._lastGestureId) {
     STATE._lastGestureId    = gestureKey;
@@ -4887,8 +5016,8 @@ App._actionMode_onGestureDetected = function(result) {
     STATE.lastAddedLetter   = null;
   } else {
     const held = (now - STATE._gestureHoldStart) / 1000;
-    updateHoldProgress(Math.min(held / STATE.holdSeconds, 1));
-    if (held >= STATE.holdSeconds && gestureKey !== STATE.lastAddedLetter) {
+    updateHoldProgress(Math.min(held / HOLD_MODE2, 1));
+    if (held >= HOLD_MODE2 && gestureKey !== STATE.lastAddedLetter) {
       STATE.lastAddedLetter = gestureKey;
       speakGestureResult();
       if (navigator.vibrate) navigator.vibrate([40, 20, 40]);
